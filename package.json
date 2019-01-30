@@ -11,7 +11,8 @@
     "lint": "eslint **.js"
 	},
 	"dependencies": {
-		"express": "^4.16.4"
+    "express": "^4.16.4",
+    "mongoose": "^5.4.7"
 	},
 	"devDependencies": {
 		"eslint": "^5.12.1",
@@ -30,5 +31,5 @@
 			"eslint --fix",
 			"git add"
 		]
-	}
+  }
 }
