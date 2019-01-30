@@ -7,12 +7,13 @@
 	"license": "MIT",
 	"scripts": {
 		"start": "node index.js",
-    "dev": "nodemon index.js",
-    "lint": "eslint **.js"
+		"dev": "nodemon index.js",
+		"lint": "eslint **.js"
 	},
 	"dependencies": {
     "express": "^4.16.4",
-    "mongoose": "^5.4.7"
+    "mongoose": "^5.4.7",
+		"mongoose-unique-validator": "^2.0.2"
 	},
 	"devDependencies": {
 		"eslint": "^5.12.1",
