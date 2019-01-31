@@ -3,3 +3,4 @@ nodemon.json
 node_modules
 .vscode
 yarn-error.log
+package-lock.json
