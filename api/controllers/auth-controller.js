@@ -21,8 +21,13 @@ const signUp = async (req, res) => {
             gender,
             location
         })
-        const response = await user.save();
-        res.status(201).json({message: 'User created', response});
+        const newUser = await user.save();
+        jwt.sign({email: newUser.email, id: newUser.id}, process.env.JWT_KEY, { expiresIn: '30d' }, (err, token) => {
+            if (err) return res.sendStatus(500);
+            res.status(200).json({message: 'user created', user: {
+                email: newUser.email, username: newUser.username, id: newUser.id, token
+            }});
+        });
     } catch (err) {
         res.status(500).json(err);
     }   
