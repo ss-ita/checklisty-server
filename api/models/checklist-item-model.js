@@ -12,6 +12,6 @@ const checklistItemSchema = new mongoose.Schema({
     priority: {type: Number}
  })
 
-const ChecklistItem = mongoose.model('ChecklistItem', checklistItemSchema);
-
-module.exports = ChecklistItem;
+ const ChecklistItemModel = mongoose.model('ChecklistItem', checklistItemSchema);
+ 
+module.exports = { checklistItemSchema, ChecklistItemModel };
