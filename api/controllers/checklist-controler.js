@@ -4,6 +4,7 @@ const CheckList = require('../models/checklist-model');
 const User = require('../models/user-model');
 
 const create = async (req, res) => {
+
     try {
         const { item_data } = req.body;
         
@@ -26,15 +27,15 @@ const create = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-    console.log("action-getAll");
+    
     try {
         const checkLists = await CheckList.find();
         const result = checkLists.map(doc => {
             return {
                 id: doc.id,
-                author: doc.author.username,
+                author: doc.author,
                 creation_date: doc.creation_date,
-                item_data: doc.map(item => {
+                item_data: doc.item_data.map(item => {
                     return {
                         title: item.title,
                         description: item.description,
