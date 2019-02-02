@@ -18,6 +18,7 @@ const createCheckList = async (req, res) => {
 
         const list = await newList.save()
         res.status(201).json(list);
+
     } catch (error) {
         res.status(500).json(error);
     }
@@ -51,8 +52,10 @@ const createCheckListItem = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
+
     try {
         const checkLists = await CheckList.find();
+
         const result = checkLists.map(doc => {
             return {
                 id: doc.id,
@@ -70,15 +73,17 @@ const getAll = async (req, res) => {
             }
         });
         res.status(200).json(result);
+
     } catch (error) {
         res.json(error);
     }
 }; 
 
 const getOne = async (req, res) => {
+
     try {
         const list = await CheckList.findById(req.params.id);
-        
+
         if(!list) return res.sendStatus(404);
         const result = {
             id: list.id,
@@ -86,8 +91,8 @@ const getOne = async (req, res) => {
             creation_date: list.creation_date,
             item_data: list.item_data
         };
-
         res.status(200).json(result);
+
     } catch (error) {
         res.json(error);
     }
@@ -120,18 +125,20 @@ const update = async (req, res) => {
 
         await list.save();  
         res.status(200).json({message: 'List updated'});
+
     } catch (error) {
         res.json(error);
     }
 };
 
 const deleteList = async (req, res) => {
+
     try {
         const succeded = await CheckList.findByIdAndDelete(req.params.id)
         if (succeded) {
             res.status(200).json({message: `Deleted Check List ID: ${req.params.id}`});
         } else res.sendStatus(404);
-
+        
     } catch (error) {
         res.sendStatus(404);
     }
