@@ -46,7 +46,7 @@ const createCheckListItem = async (req, res) => {
 
         const result = await list.save()
         res.status(201).json(result);
-
+      
     } catch (error) {
         res.status(500).json(error);
     }
@@ -73,6 +73,7 @@ const getAll = async (req, res) => {
                 })
             }
         });
+      
         res.status(200).json(result);
 
     } catch (error) {
@@ -84,8 +85,8 @@ const getOne = async (req, res) => {
 
     try {
         const list = await CheckList.findById(req.params.id);
-
         if(!list) return res.sendStatus(404);
+      
         const result = {
             id: list.id,
             title: list.title,
@@ -93,8 +94,9 @@ const getOne = async (req, res) => {
             creation_date: list.creation_date,
             item_data: list.item_data
         };
+      
         res.status(200).json(result);
-
+      
     } catch (error) {
         res.json(error);
     }
