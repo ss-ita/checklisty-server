@@ -4,7 +4,7 @@ const User = require('../models/user-model');
 
 const signUp = async (req, res) => {
     try {
-        const { username, email, password, gender, location } = req.body; 
+        const { username, email, password, gender, location } = req.body.params; 
         if (!email || !password || !username) {
             return res.status(422).json({message: 'Please, fill up all fields'});
         }
@@ -34,7 +34,7 @@ const signUp = async (req, res) => {
 
 const signIn = async (req, res) => {
     try {
-        const { email, password } = req.body; 
+        const { email, password } = req.body.params; 
         if (!email || !password) {
             return res.status(422).json({message: 'email and password are required'});
         }
