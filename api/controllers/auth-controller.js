@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user-model');
 
@@ -5,11 +6,14 @@ const signUp = async (req, res) => {
     try {
         const { username, email, password } = req.body; 
         if (!email || !password || !username) {
-            return res.status(422).send('Please, fill up all fields');
+            return res.status(422).json({message: 'Please, fill up all fields.'});
         }
         
         let user = await User.findOne({ email });
-        if (user) return res.status(422).send('User with this email is already exist');
+        if (user) return res.status(422).json({message: 'User with this email is already exist.'});
+
+        user = await User.findOne({ username });
+        if (user) return res.status(422).json({ message: 'User with this name is already exist.'});
 
         user = new User({ username, email, password })
         const salt = bcrypt.genSaltSync(10);
@@ -30,14 +34,14 @@ const signIn = async (req, res) => {
     try {
         const { email, password } = req.body; 
         if (!email || !password) {
-            return res.status(422).json({message: 'email and password are required'});
+            return res.status(422).json({message: 'email and password are required.'});
         }
 
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).send('Invalid email or password.');
+        if (!user) return res.status(400).json({message: 'User with this email not found.'});
 
         const validPassword = await bcrypt.compareSync(password, user.password);
-        if (!validPassword) return res.status(400).send('Invalid email or password.');
+        if (!validPassword) return res.status(400).json({ message: 'Invalid email or password.'});
 
         const token = user.generateAuthToken();
         res.status(200).send(token);
@@ -46,4 +50,18 @@ const signIn = async (req, res) => {
     }
 }
 
-module.exports = {signUp, signIn};
+const validateUser = async (req, res) => {
+    try {
+        const token = req.headers['access-token'];
+
+        const data = jwt.verify(token, process.env.JWT_KEY);
+
+        const user = await User.findById(data._id, 'email username')
+
+        res.status(200).json(user);
+    } catch(err) {
+        res.status(500).json(err);
+    }
+}
+
+module.exports = {signUp, signIn, validateUser};

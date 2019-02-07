@@ -14,17 +14,16 @@ const userSchema = new mongoose.Schema({
 userSchema.plugin(uniqueValidator);
 
 userSchema.methods.generateAuthToken = function() {
-    const token = jwt.sign(
-      {
-        _id: this._id,
-        name: this.username,
-        email: this.email,
-        isAdmin: this.isAdmin
-      },
-      process.env.JWT_KEY
-    );
-    return token;
-  };
+  const token = jwt.sign(
+    {
+      _id: this._id,
+      name: this.username,
+      email: this.email,
+    },
+    process.env.JWT_KEY
+  );
+  return token;
+};
 
 const User = mongoose.model('User', userSchema);
 
