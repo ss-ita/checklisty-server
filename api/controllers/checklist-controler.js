@@ -28,16 +28,16 @@ const createCheckList = async (req, res) => {
 const createCheckListItem = async (req, res) => {
 
     try {
-        const { title, description, details, tags, priority } = req.body;
+        const { item_title, description, details, tags, priority } = req.body;
 
         const list = await CheckList.findById(req.params.id);
         if (!list) return res.sendStatus(404);
 
-        if (!title || !description || !details || !tags || !priority) {
+        if (!item_title || !description || !details || !tags || !priority) {
             return res.status(422).json({ message: 'Please, fill up all fields' });
         }
         list.items_data.push({
-            title,
+            item_title,
             description,
             details,
             tags,
@@ -65,7 +65,7 @@ const getAll = async (req, res) => {
                 creation_date: doc.creation_date,
                 items_data: doc.items_data.map(item => {
                     return {
-                        title: item.title,
+                        item_title: item.item_title,
                         description: item.description,
                         details: item.details,
                         tags: item.tags,
