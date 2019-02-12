@@ -1,14 +1,17 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const User = require('../models/user-model');
+const { User, validate} = require('../models/user-model');
 
 const signUp = async (req, res) => {
     try {
+        const { error } = validate(req.body);
+        if (error) return res.status(400).json({message: error.error.details[0].message});
+
         const { username, email, password } = req.body; 
         if (!email || !password || !username) {
             return res.status(422).json({message: 'Please, fill up all fields.'});
         }
-        
+
         let user = await User.findOne({ username });
         if (user) return res.status(422).json({username: 'User with this username is already exist.'});
 

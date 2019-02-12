@@ -1,4 +1,4 @@
-const User = require('../models/user-model');
+const { User } = require('../models/user-model');
 
 const updateProfile = async (req, res) => {
     try {
@@ -14,7 +14,8 @@ const updateProfile = async (req, res) => {
 const getProfile = async (req, res) => {
     try{
         const { id } = req.body;
-        const {password, ...user} = await User.findById(id);
+        const user = await User.findById(id).select("-password");
+
         return res.status(200).json(user);
     } catch (err){
         res.status(500).json(err);
