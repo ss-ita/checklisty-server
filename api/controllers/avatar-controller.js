@@ -10,8 +10,8 @@ aws.config.update({
 const s3 = new aws.S3();
 
 const avatarUpload = (req,res) => {
-  const base64Data = Buffer.from(req.body.replace(/^data:image\/\w+;base64,/, ""),'base64')
-  const type = req.body.split(';')[0].split('/')[1];
+  const base64Data = Buffer.from(req.body.img.replace(/^data:image\/\w+;base64,/, ""),'base64')
+  const type = req.body.img.split(';')[0].split('/')[1];
   const userId = Date.now().toString();
 
   const params = {
