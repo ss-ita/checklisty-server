@@ -11,7 +11,7 @@ mongoose.connect(`mongodb://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_
 
 const app = express();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3030;
 
 app.use(bodyParser.json());
 
