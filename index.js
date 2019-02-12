@@ -15,6 +15,8 @@ const port = process.env.PORT || 3030;
 
 app.use(bodyParser.json());
 
+app.use(bodyParser.text({type:'text/plain'}));
+
 app.use('/api', apiRouter);
 
 app.get('/', (req, res) => res.json('App get works'));

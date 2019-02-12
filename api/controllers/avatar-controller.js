@@ -1,38 +1,31 @@
 const aws = require('aws-sdk');
-const multer = require('multer');
-const multerS3 = require('multer-s3');
 
 aws.config.update({
-    secretAccessKey: "rOA1t5goIOpjVzn63NCQTsAt48gF3NiFfWczSgLw",
-    accessKeyId: "AKIAJSH7HDJE5ZGN45HA",
+    secretAccessKey: process.env.SECRETKEY,
+    accessKeyId: process.env.ACCESSKEY,
     region: 'us-east-1'
 });
 
 const s3 = new aws.S3();
 
-const upload = multer({
-    storage: multerS3({
-      s3: s3,
-      bucket: 'frontend-checklist',
-      acl: 'public-read',
-      metadata: (req, file, cb) => {
-        cb(null, {fieldName: file.fieldname});
-      },
-      key: (req, file, cb) => {
-        cb(null, Date.now().toString() + '.jpg')
-      }
-    })
-});
+const avatarUpload = (req,res) => {
+  const base64Data = Buffer.from(req.body.replace(/^data:image\/\w+;base64,/, ""),'base64')
+  const type = req.body.split(';')[0].split('/')[1];
+  const userId = Date.now().toString();
 
-const singleUpload = upload.single('avatar');
+  const params = {
+      Bucket: 'frontend-checklist',
+      Key: `${userId}.${type}`,
+      Body: base64Data,
+      ACL: 'public-read',
+      ContentEncoding: 'base64',
+      ContentType: `image/${type}`
+  }
 
-const avatarUpload = async (req,res) => {
-    await singleUpload(req, res, (err) => {
-        if (err) {
-          return res.status(422).send({errors: [{title: 'Image Upload Error', detail: err.message}] });
-        }
-        return res.send(req.file.location);
-    });
-}
+  s3.upload(params, (err, data) => {
+      if (err) res.status(500).json(err);
+      res.send(data.Location);
+  });
+};
 
 module.exports = avatarUpload;
