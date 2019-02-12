@@ -1,4 +1,5 @@
 const aws = require('aws-sdk');
+//const User = require('../models/user-model');
 
 aws.config.update({
     secretAccessKey: process.env.SECRETKEY,
