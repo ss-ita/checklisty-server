@@ -44,4 +44,14 @@ const avatarUpload = async (req,res) => {
   });
 };
 
-module.exports = avatarUpload;
+const avatarGet = async (req, res) => {
+    try{
+      const userId = req.userData._id;
+      const user = await User.findById(userId);
+      res.send(user.image);
+    } catch (err){
+        res.status(500).json(err);
+    }
+}
+
+module.exports = { avatarUpload, avatarGet };
