@@ -9,7 +9,7 @@ aws.config.update({
 
 const s3 = new aws.S3();
 
-const avatarUpload = (req,res) => {
+const avatarUpload = async (req,res) => {
 
   const base64Data = Buffer.from(req.body.img.replace(/^data:image\/\w+;base64,/, ""),'base64')
   const type = req.body.img.split(';')[0].split('/')[1];
@@ -24,6 +24,15 @@ const avatarUpload = (req,res) => {
       ContentType: `image/${type}`
   }
 
+  const key = await User.findById(userId);
+  if(key.image){
+    const paramsDel = {  
+        Bucket: 'frontend-checklist', 
+        Key: key.image.replace('https://frontend-checklist.s3.amazonaws.com/','')
+    };
+
+    s3.deleteObject(paramsDel, () => {});
+  }
   s3.upload(params, async (err, data) => {
       if (err) res.status(500).json(err);
       try {
