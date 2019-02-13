@@ -1,5 +1,5 @@
 const aws = require('aws-sdk');
-//const User = require('../models/user-model');
+const { User } = require('../models/user-model');
 
 aws.config.update({
     secretAccessKey: process.env.SECRETKEY,
@@ -10,22 +10,28 @@ aws.config.update({
 const s3 = new aws.S3();
 
 const avatarUpload = (req,res) => {
+
   const base64Data = Buffer.from(req.body.img.replace(/^data:image\/\w+;base64,/, ""),'base64')
   const type = req.body.img.split(';')[0].split('/')[1];
-  const userId = Date.now().toString();
+  const userId = req.userData._id;
 
   const params = {
       Bucket: 'frontend-checklist',
-      Key: `${userId}.${type}`,
+      Key: `${Date.now()}-${userId}.${type}`,
       Body: base64Data,
       ACL: 'public-read',
       ContentEncoding: 'base64',
       ContentType: `image/${type}`
   }
 
-  s3.upload(params, (err, data) => {
+  s3.upload(params, async (err, data) => {
       if (err) res.status(500).json(err);
-      res.send(data.Location);
+      try {
+        await User.findByIdAndUpdate(userId,{ $set: { image: data.Location } });
+        res.send(data.Location);
+      } catch (err) {
+          res.status(500).json(err);
+      }
   });
 };
 
