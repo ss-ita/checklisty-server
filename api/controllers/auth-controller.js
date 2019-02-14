@@ -1,19 +1,23 @@
+
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const User = require('../models/user-model');
+const { User, validate} = require('../models/user-model');
 
 const signUp = async (req, res) => {
     try {
+        const { error } = validate(req.body);
+        if (error) return res.status(400).json({message: error.error.details[0].message});
+
         const { username, email, password } = req.body; 
         if (!email || !password || !username) {
             return res.status(422).json({message: 'Please, fill up all fields.'});
         }
-        
-        let user = await User.findOne({ email });
-        if (user) return res.status(422).json({message: 'User with this email is already exist.'});
 
-        user = await User.findOne({ username });
-        if (user) return res.status(422).json({ message: 'User with this name is already exist.'});
+        let user = await User.findOne({ username });
+        if (user) return res.status(422).json({username: 'User with this username is already exist.'});
+
+        user = await User.findOne({ email });
+        if (user) return res.status(422).json({email: 'User with this email is already exist.'});
 
         user = new User({ username, email, password })
         const salt = bcrypt.genSaltSync(10);
@@ -38,7 +42,7 @@ const signIn = async (req, res) => {
         }
 
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({message: 'User with this email not found.'});
+        if (!user) return res.status(400).json({ message: 'Invalid email or password.'});
 
         const validPassword = await bcrypt.compareSync(password, user.password);
         if (!validPassword) return res.status(400).json({ message: 'Invalid email or password.'});
