@@ -48,7 +48,10 @@ const signIn = async (req, res) => {
         if (!validPassword) return res.status(400).json({ message: 'Invalid email or password.'});
 
         const token = user.generateAuthToken();
-        res.status(200).send({token, user});
+        const { username } = user;
+        res
+            .header("access-token", token)
+            .status(200).json({user: {email, username}})
     } catch(err) {
         res.status(500).json(err);
     }
