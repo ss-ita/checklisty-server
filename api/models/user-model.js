@@ -53,7 +53,7 @@ userSchema.plugin(uniqueValidator);
 userSchema.methods.generateAuthToken = function() {
   const token = jwt.sign(
     {
-      _id: this._id,
+      id: this._id,
       name: this.username,
       email: this.email,
     },

@@ -11,7 +11,7 @@ const createCheckList = async (req, res) => {
         }
         const newList = new CheckList({
             title,
-            author: req.userData.name,
+            author: req.userData.id,
             creation_date: new Date(),
             items_data
         })
@@ -54,7 +54,7 @@ const createCheckListItem = async (req, res) => {
 const getAll = async (req, res) => {
 
     try {
-        const checkLists = await CheckList.find();
+        const checkLists = await CheckList.find().populate('author', 'username');
         const result = checkLists.map(doc => {
             return {
                 id: doc.id,
