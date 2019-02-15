@@ -1,3 +1,4 @@
+
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { User, validate} = require('../models/user-model');
@@ -47,7 +48,10 @@ const signIn = async (req, res) => {
         if (!validPassword) return res.status(400).json({ message: 'Invalid email or password.'});
 
         const token = user.generateAuthToken();
-        res.status(200).send(token);
+        const { username } = user;
+        res
+            .header("access-token", token)
+            .status(200).json({user: {email, username}})
     } catch(err) {
         res.status(500).json(err);
     }
@@ -56,6 +60,7 @@ const signIn = async (req, res) => {
 const validateUser = async (req, res) => {
     try {
         const token = req.headers['access-token'];
+        if(!token) res.status(404).json({message: 'Token not found'});
 
         const data = jwt.verify(token, process.env.JWT_KEY);
 
