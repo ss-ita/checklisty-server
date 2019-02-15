@@ -2,6 +2,7 @@
 const mongoose = require('mongoose');
 var uniqueValidator = require('mongoose-unique-validator');
 const jwt = require('jsonwebtoken');
+// eslint-disable-next-line node/no-missing-require
 const Joi = require('joi');
 
 const minLength = 6;
