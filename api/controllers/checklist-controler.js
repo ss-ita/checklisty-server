@@ -1,5 +1,4 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
-const mongoose = require('mongoose');
 const CheckList = require('../models/checklist-model');
 
 const createCheckList = async (req, res) => {
@@ -12,7 +11,7 @@ const createCheckList = async (req, res) => {
         }
         const newList = new CheckList({
             title,
-            author: mongoose.Types.ObjectId(),
+            author: req.userData.name,
             creation_date: new Date(),
             items_data
         })
@@ -56,7 +55,6 @@ const getAll = async (req, res) => {
 
     try {
         const checkLists = await CheckList.find();
-
         const result = checkLists.map(doc => {
             return {
                 id: doc.id,
