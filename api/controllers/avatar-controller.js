@@ -13,7 +13,7 @@ const avatarUpload = async (req,res) => {
 
   const base64Data = Buffer.from(req.body.img.replace(/^data:image\/\w+;base64,/, ""),'base64')
   const type = req.body.img.split(';')[0].split('/')[1];
-  const userId = req.userData._id;
+  const userId = req.userData.id;
 
   const params = {
       Bucket: 'frontend-checklist',
@@ -46,7 +46,7 @@ const avatarUpload = async (req,res) => {
 
 const avatarGet = async (req, res) => {
     try{
-      const userId = req.userData._id;
+      const userId = req.userData.id;
       const user = await User.findById(userId);
       res.send(user.image);
     } catch (err){
