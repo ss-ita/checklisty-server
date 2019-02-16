@@ -64,7 +64,7 @@ const validateUser = async (req, res) => {
 
         const data = jwt.verify(token, process.env.JWT_KEY);
 
-        const user = await User.findById(data._id, 'email username')
+        const user = await User.findById(data.id, 'email username')
 
         res.status(200).json(user);
     } catch(err) {
