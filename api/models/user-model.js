@@ -56,8 +56,10 @@ userSchema.methods.generateAuthToken = function() {
       id: this._id,
       name: this.username,
       email: this.email,
+      image: this.image
     },
-    process.env.JWT_KEY
+    process.env.JWT_KEY,
+    { expiresIn: '30d' }
   );
   return token;
 };
