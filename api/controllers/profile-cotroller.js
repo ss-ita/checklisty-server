@@ -3,18 +3,31 @@ const bcrypt = require('bcryptjs');
 
 const updateProfile = async (req, res) => {
     try {
-        let user = req.body.values;
-        const updatedUser = {
-            username: user.username,
-            email: user.email,
-            password: user.newPassword
-        };
-        //const user1 = await User.findOne({ email });
-        //const validPassword = await bcrypt.compareSync(user.oldPassword, user1.password);
-        const salt = bcrypt.genSaltSync(10);
-        updatedUser.password = await bcrypt.hashSync(updatedUser.password, salt);
-        const updateUserInfo = await User.findByIdAndUpdate(req.userData._id, {$set: updatedUser });
-        return res.status(200).json(updateUserInfo);
+        const userId = req.userData.id;
+        const allUsers = await User.find();
+
+        if (req.body.name){
+            const userSameName = allUsers.find((item) => {
+                return userId !== item.id && (item.username === req.body.name || item.email === req.body.email);
+            });
+            if(userSameName){
+                if (userSameName.username === req.body.name) 
+                    return res.status(409).json({ message: 'User with that name already exists!' });
+                if (userSameName.email === req.body.email)
+                    return res.status(409).json({ message: 'User with that email already exists!' });
+            }
+            await User.findByIdAndUpdate(userId, { $set: { username: req.body.name, email: req.body.email } });
+            res.status(200).json({ message: 'Name and email changed!' });
+        }
+        else {
+            const salt = bcrypt.genSaltSync(10);
+            const user = await User.findById(userId);
+            const validPassword = bcrypt.compareSync(req.body.oldPassword, user.password);
+            if (!validPassword) return res.status(400).json({ message: 'Invalid old password!'});
+            const newPassword = bcrypt.hashSync(req.body.newPassword, salt);
+            await User.findByIdAndUpdate(userId, { $set: { password: newPassword } });
+            res.status(200).json({ message: 'Password changed!' });
+        }
     } catch (err) {
         res.status(500).json(err);
     }
@@ -22,8 +35,8 @@ const updateProfile = async (req, res) => {
 
 const getProfile = async (req, res) => {
     try{
-        const user = await User.findById(req.userData._id).select("-password");
-        if (!user) res.status(404).json({message: "User not found!"});
+        const id = req.userData.id;
+        const user = await User.findById(id).select('-password');
 
         return res.status(200).json(user);
     } catch (err){
