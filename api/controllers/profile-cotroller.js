@@ -20,10 +20,10 @@ const updateProfile = async (req, res) => {
             res.status(200).json({ message: 'Name and email changed!' });
         }
         else {
-            const salt = bcrypt.genSaltSync(10);
             const user = await User.findById(userId);
             const validPassword = bcrypt.compareSync(req.body.oldPassword, user.password);
             if (!validPassword) return res.status(400).json({ message: 'Invalid old password!'});
+            const salt = bcrypt.genSaltSync(10);
             const newPassword = bcrypt.hashSync(req.body.newPassword, salt);
             await User.findByIdAndUpdate(userId, { $set: { password: newPassword } });
             res.status(200).json({ message: 'Password changed!' });
