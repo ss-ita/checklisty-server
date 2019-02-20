@@ -5,7 +5,7 @@ const authCheck = require('../middlewares/auth-check');
 
 router.get('/', checklistControler.getAll);
 router.post('/create', authCheck, checklistControler.createCheckList);
-router.post('/create/:id', authCheck, checklistControler.createCheckListItem);
+router.post('/create/:id/:sectionId', authCheck, checklistControler.createCheckListItem);
 router.get('/:id', checklistControler.getOne);
 router.put('/:id', checklistControler.update);
 router.delete('/:id', checklistControler.deleteList);
