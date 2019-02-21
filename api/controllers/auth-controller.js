@@ -6,7 +6,7 @@ const { User, validate} = require('../models/user-model');
 const signUp = async (req, res) => {
     try {
         const { error } = validate(req.body);
-        if (error) return res.status(400).json({message: error.error.details[0].message});
+        if (error) return res.status(400).json({message: error.details[0].message});
 
         const { username, email, password } = req.body; 
         if (!email || !password || !username) {
@@ -19,7 +19,8 @@ const signUp = async (req, res) => {
         user = await User.findOne({ email });
         if (user) return res.status(422).json({email: 'User with this email is already exist.'});
 
-        user = new User({ username, email, password })
+        user = new User({ username, email, password });
+
         const salt = bcrypt.genSaltSync(10);
         user.password = await bcrypt.hashSync(password, salt);
         await user.save();
@@ -64,8 +65,7 @@ const validateUser = async (req, res) => {
 
         const data = jwt.verify(token, process.env.JWT_KEY);
 
-        const user = await User.findById(data.id, 'email username')
-
+        const user = await User.findById(data.id, 'email username');
         res.status(200).json(user);
     } catch(err) {
         res.status(500).json(err);
