@@ -4,16 +4,17 @@ const CheckList = require('../models/checklist-model');
 const createCheckList = async (req, res) => {
 
     try {
-        const { title, items_data } = req.body;
-
-        if (!items_data) {
+        const { title, sections_data} = req.body;
+        const {sections_data:[{section_title, items_data}]} = req.body;
+        
+        if (!section_title || !items_data) {
             return res.status(422).json({ message: 'Please, fill up all fields' });
         }
         const newList = new CheckList({
             title,
             author: req.userData.id,
             creation_date: new Date(),
-            items_data
+            sections_data
         })
 
         const list = await newList.save()
@@ -30,21 +31,23 @@ const createCheckListItem = async (req, res) => {
         const { item_title, description, details, tags, priority } = req.body;
 
         const list = await CheckList.findById(req.params.id);
+        const section = await list.sections_data.find(item => item.id === req.params.sectionId);
+        
         if (!list) return res.sendStatus(404);
 
-        if (!item_title || !description || !details || !tags || !priority) {
+        if (!item_title || !description || !tags || !priority) {
             return res.status(422).json({ message: 'Please, fill up all fields' });
         }
-        list.items_data.push({
+
+        section.items_data.push({
             item_title,
             description,
             details,
             tags,
             priority
         });
-
-        const result = await list.save()
-        res.status(201).json(result);
+        await list.save()
+        res.status(201).json(list);
 
     } catch (error) {
         res.status(500).json(error);
@@ -61,18 +64,23 @@ const getAll = async (req, res) => {
                 title: doc.title,
                 author: doc.author,
                 creation_date: doc.creation_date,
-                items_data: doc.items_data.map(item => {
-                    return {
+                sections_data: doc.sections_data.map(section => {
+                  return {
+                    section_title: section.section_title,
+                    items_data: section.items_data.map(item => {
+                      return {
                         item_title: item.item_title,
                         description: item.description,
                         details: item.details,
                         tags: item.tags,
                         priority: item.priority,
                     }
+                    })
+                  }
                 })
             }
         });
-
+        
         res.status(200).json(result);
 
     } catch (error) {
@@ -91,7 +99,12 @@ const getOne = async (req, res) => {
             title: list.title,
             author: list.author,
             creation_date: list.creation_date,
-            items_data: list.items_data
+            sections_data: list.sections_data.map(section => {
+              return {
+                section_title: section.section_title,
+                items_data: section.items_data
+              }
+            })
         };
 
         res.status(200).json(result);
@@ -104,15 +117,16 @@ const getOne = async (req, res) => {
 const update = async (req, res) => {
 
     try {
-        const { title, items_data } = req.body;
+        const { title, sections_data } = req.body;
 
-        const list = await CheckList.findByIdAndUpdate(req.params.id, {
-            items_data: { $set: items_data },
-            title: { $set: title }
-        }, { new: true });
+        const list = await CheckList.findByIdAndUpdate(
+          req.params.id, 
+          { $set: { sections_data, title } }, 
+          { new: true }
+        );
+        
         if (!list) return res.sendStatus(404);
 
-        await list.save();
         res.status(200).json({ message: 'List updated', list: list });
 
     } catch (error) {
@@ -121,11 +135,10 @@ const update = async (req, res) => {
 };
 
 const deleteList = async (req, res) => {
-
     try {
-        const succeded = await CheckList.findByIdAndDelete(req.params.id)
-        if (succeded) {
-            res.status(200).json({ message: `Deleted Check List ID: ${req.params.id}` });
+        const deletedList = await CheckList.findByIdAndDelete(req.params.id);
+        if (deletedList) {
+            res.status(200).json({ message: `Deleted Check List Title: ${deletedList.title}` });
         } else res.sendStatus(404);
 
     } catch (error) {
