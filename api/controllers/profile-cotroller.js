@@ -12,19 +12,19 @@ const updateProfile = async (req, res) => {
             email: { type: String, index: true, unique: true },
         });
         userSchema.plugin(uniqueValidator);
-        if (user.username === req.body.name) await User.findByIdAndUpdate(
+        if (user.username === req.body.username) await User.findByIdAndUpdate(
             userId,
             { email: req.body.email },
             { runValidators: true, context: 'query' }
         );
         else if (user.email === req.body.email) await User.findByIdAndUpdate(
             userId,
-            { username: req.body.name },
+            { username: req.body.username },
             { runValidators: true, context: 'query' }
         );
         else await User.findOneAndUpdate(
             userId,
-            { username: req.body.name, email: req.body.email },
+            { username: req.body.username, email: req.body.email },
             { runValidators: true, context: 'query' }
         );
         res.status(200).json({ message: 'Name and email changed!' });
