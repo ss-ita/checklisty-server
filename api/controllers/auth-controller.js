@@ -41,18 +41,18 @@ const signIn = async (req, res) => {
         if (!email || !password) {
             return res.status(422).json({message: 'email and password are required.'});
         }
-
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: 'Invalid email or password.'});
 
         const validPassword = await bcrypt.compareSync(password, user.password);
         if (!validPassword) return res.status(400).json({ message: 'Invalid email or password.'});
+        
+        user.password = '';
 
         const token = user.generateAuthToken();
-        const { username } = user;
         res
             .header("access-token", token)
-            .status(200).json({user: {email, username}})
+            .status(200).json({user})
     } catch(err) {
         res.status(500).json(err);
     }
@@ -65,7 +65,7 @@ const validateUser = async (req, res) => {
 
         const data = jwt.verify(token, process.env.JWT_KEY);
 
-        const user = await User.findById(data.id, 'email username');
+        const user = await User.findById(data.id).select("-password");
         res.status(200).json(user);
     } catch(err) {
         res.status(500).json(err);
