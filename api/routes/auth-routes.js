@@ -13,18 +13,18 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 
 router.get('/google/redirect',
   passport.authenticate('google', { failureRedirect: '/api/auth/google' }),
-  authController.socialController);
+  authController.socialAuth);
 
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
 router.get('/facebook/redirect',
   passport.authenticate('facebook', { failureRedirect: '/api/auth/facebook' }),
-  authController.socialController);
+  authController.socialAuth);
 
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
 router.get('/github/redirect',
   passport.authenticate('github', { failureRedirect: '/api/auth/github' }),
-  authController.socialController);
+  authController.socialAuth);
 
 module.exports = router;

@@ -72,7 +72,7 @@ const validateUser = async (req, res) => {
     }
 }
 
-const socialController = async (req, res) => {
+const socialAuth = async (req, res) => {
     try {
         const id = req.session.passport.user;
         const user = await User.findById(id);
@@ -85,4 +85,4 @@ const socialController = async (req, res) => {
     }
 }
 
-module.exports = { signUp, signIn, validateUser, socialController };
+module.exports = { signUp, signIn, validateUser, socialAuth };

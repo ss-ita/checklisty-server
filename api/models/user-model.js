@@ -5,8 +5,8 @@ const jwt = require('jsonwebtoken');
 // eslint-disable-next-line node/no-missing-require
 const Joi = require('joi');
 
-const minLength = 6;
-const maxLength = 15;
+const minLength = 3;
+const maxLength = 25;
 
 const userSchema = new mongoose.Schema({
     username: {
