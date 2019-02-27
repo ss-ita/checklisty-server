@@ -16,7 +16,7 @@ const avatarUpload = async (req,res) => {
   const userId = req.userData.id;
 
   const params = {
-      Bucket: 'frontend-checklist',
+      Bucket: 'checklisty',
       Key: `${Date.now()}-${userId}.${type}`,
       Body: base64Data,
       ACL: 'public-read',
@@ -24,11 +24,11 @@ const avatarUpload = async (req,res) => {
       ContentType: `image/${type}`
   }
 
-  const key = await User.findById(userId);
-  if(key.image){
+  const userForImageChecking = await User.findById(userId);
+  if(userForImageChecking.image){
     const paramsDel = {  
-        Bucket: 'frontend-checklist', 
-        Key: key.image.replace('https://frontend-checklist.s3.amazonaws.com/','')
+        Bucket: 'checklisty', 
+        Key: userForImageChecking.image.replace('https://checklisty.s3.amazonaws.com/','')
     };
 
     s3.deleteObject(paramsDel, () => {});
