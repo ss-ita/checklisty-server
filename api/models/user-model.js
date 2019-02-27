@@ -35,7 +35,15 @@ const userSchema = new mongoose.Schema({
     },
     password: {
       type: String, 
-      required: true,
+    },
+    googleId:{
+      type: String
+    },
+    facebookId:{
+      type: String
+    },
+    githubId:{
+      type:String
     },
     team: {
       type: String
@@ -75,7 +83,6 @@ const validate = (user) => {
     password: Joi.string()
     .min(minLength)
     .max(maxLength)
-    .required()
   };
   return Joi.validate(user, shema);
 }

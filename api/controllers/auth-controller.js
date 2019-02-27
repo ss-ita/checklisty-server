@@ -1,7 +1,7 @@
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { User, validate} = require('../models/user-model');
+const { User, validate } = require('../models/user-model');
 
 const signUp = async (req, res) => {
     try {
@@ -32,7 +32,7 @@ const signUp = async (req, res) => {
 
     } catch (err) {
         res.status(500).json(err);
-    }   
+    }
 };
 
 const signIn = async (req, res) => {
@@ -61,15 +61,28 @@ const signIn = async (req, res) => {
 const validateUser = async (req, res) => {
     try {
         const token = req.headers['access-token'];
-        if(!token) res.status(404).json({message: 'Token not found'});
+        if (!token) res.status(404).json({ message: 'Token not found' });
 
         const data = jwt.verify(token, process.env.JWT_KEY);
 
         const user = await User.findById(data.id).select("-password");
         res.status(200).json(user);
-    } catch(err) {
+    } catch (err) {
         res.status(500).json(err);
     }
 }
 
-module.exports = {signUp, signIn, validateUser};
+const socialController = async (req, res) => {
+    try {
+        const id = req.session.passport.user;
+        const user = await User.findById(id);
+
+        const token = user.generateAuthToken();
+        
+        return res.redirect(`http://localhost:3000/redirect/?access-token=${token}`);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+}
+
+module.exports = { signUp, signIn, validateUser, socialController };
