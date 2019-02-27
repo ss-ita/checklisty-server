@@ -1,21 +1,25 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-
 const apiRouter = require('./api/routes/api-routes');
+const passportSetup = require('./passport/passport-setup');
+const passport = require('passport');
 
-mongoose.connect(`mongodb://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_HOST}`, {useNewUrlParser: true})
- .then(() => {
-    console.log('Connected to mongodb'); //eslint-disable-line
-})
+mongoose.connect(`mongodb://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_HOST}`, { useNewUrlParser: true })
+    .then(() => {
+        console.log('Connected to mongodb'); //eslint-disable-line
+    })
 
 const app = express();
 
 const port = process.env.PORT || 3030;
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(bodyParser.json());
 
-app.use(bodyParser.text({type:'text/plain'}));
+app.use(bodyParser.text({ type: 'text/plain' }));
 
 app.use('/api', apiRouter);
 
