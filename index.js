@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const apiRouter = require('./api/routes/api-routes');
 
@@ -11,7 +12,17 @@ mongoose.connect(`mongodb://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_
 
 const app = express();
 
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+    res.header("Access-Control-Allow-Headers", "access-token");
+    res.header("Access-Control-Expose-Headers", "access-token");
+    next();
+});
+
 const port = process.env.PORT || 3030;
+
+app.use(cors());
 
 app.use(bodyParser.json());
 
