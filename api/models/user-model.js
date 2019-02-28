@@ -2,8 +2,9 @@
 const mongoose = require('mongoose');
 var uniqueValidator = require('mongoose-unique-validator');
 const jwt = require('jsonwebtoken');
-// eslint-disable-next-line node/no-missing-require
 const Joi = require('joi');
+
+const env = require('../../dot.env');
 
 const minLength = 3;
 const maxLength = 25;
@@ -63,7 +64,7 @@ userSchema.methods.generateAuthToken = function() {
     {
       id: this._id,
     },
-    process.env.JWT_KEY,
+    env.JWT_KEY,
     { expiresIn: '30d' }
   );
   return token;

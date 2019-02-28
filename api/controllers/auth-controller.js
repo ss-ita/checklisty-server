@@ -26,6 +26,7 @@ const signUp = async (req, res) => {
         await user.save();
 
         const token = user.generateAuthToken();
+
         res
             .header("access-token", token)
             .status(200).json({message: 'User created', user: {email, username}})
