@@ -1,18 +1,15 @@
-/* eslint-disable no-useless-escape */
 const mongoose = require('mongoose');
 var uniqueValidator = require('mongoose-unique-validator');
 const jwt = require('jsonwebtoken');
-// eslint-disable-next-line node/no-missing-require
 const Joi = require('joi');
 
-const minLength = 3;
-const maxLength = 25;
+const minLength = 6;
+const maxLength = 50;
 
 const userSchema = new mongoose.Schema({
     username: {
       type: String, 
       required: true,
-      minlength: minLength,
       maxlength: maxLength,
       unique: true,
       validate: {
@@ -26,12 +23,6 @@ const userSchema = new mongoose.Schema({
       type: String, 
       required: true,
       unique: true,
-      validate: {
-        validator: function(v) {
-          return /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/.test(v);
-        },
-        message: props => `${props.value} is not a valid email!`
-      },
     },
     password: {
       type: String, 
@@ -74,15 +65,15 @@ const User = mongoose.model('User', userSchema);
 const validate = (user) => {
   const shema = {
     username: Joi.string()
-      .min(minLength)
       .max(maxLength)
+      .regex(/^[a-zA-Z0-9_]*$/)
       .required(),
     email: Joi.string()
-      .min(minLength)
-      .email(),
+      .email()
+      .required(),
     password: Joi.string()
-    .min(minLength)
-    .max(maxLength)
+      .min(minLength)
+      .max(maxLength)
   };
   return Joi.validate(user, shema);
 }
