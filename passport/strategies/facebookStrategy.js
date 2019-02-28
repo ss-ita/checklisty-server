@@ -13,51 +13,51 @@ module.exports = {
     }, async (accessToken, refreshToken, profile, done) => {
       const currentUser = await User.findOne({ email: profile.emails[0].value });
 
-        if (!currentUser) {
-          let correctUsername = usernameCheck(profile.displayName);
-          let i = 0, readyToCreate = false;
-          
-          while (!readyToCreate) {
-            const temporalUser = await User.findOne({ username: correctUsername });
-            
-            if (temporalUser) {
-              const pattern = /\d+$/gm;
-              
-              if (correctUsername.match(pattern)) {
-                let numOfUsername = correctUsername.match(pattern);
-                numOfUsername = Number(numOfUsername[0]) + 1;
-                correctUsername = correctUsername.replace(pattern, numOfUsername);
-              } else {
-                correctUsername = correctUsername + i;
-              }
-              
+      if (!currentUser) {
+        let correctUsername = usernameCheck(profile.displayName);
+        let i = 0, readyToCreate = false;
+
+        while (!readyToCreate) {
+          const temporalUser = await User.findOne({ username: correctUsername });
+
+          if (temporalUser) {
+            const pattern = /\d+$/gm;
+
+            if (correctUsername.match(pattern)) {
+              let numOfUsername = correctUsername.match(pattern);
+              numOfUsername = Number(numOfUsername[0]) + 1;
+              correctUsername = correctUsername.replace(pattern, numOfUsername);
             } else {
-              new User({
-                acebookId: profile.id,
-                username: correctUsername,
-                email: profile.emails[0].value,
-                image: profile.photos[0].value
-              }).save().then((newUser) => {
-                done(null, newUser);
-              });
-              readyToCreate = true;
+              correctUsername = correctUsername + i;
             }
-          }
-        } else {
-          if (currentUser.facebookId && currentUser.image) {
-            done(null, currentUser);
-          }
-          if (!currentUser.facebookId || !currentUser.image) {
-            if (!currentUser.facebookId) {
-              currentUser.facebookId = profile.id;
-            }
-            if (!currentUser.image) {
-              currentUser.image = profile.photos[0].value
-            }
-            currentUser.save();
-            done(null, currentUser);
+
+          } else {
+            new User({
+              acebookId: profile.id,
+              username: correctUsername,
+              email: profile.emails[0].value,
+              image: profile.photos[0].value
+            }).save().then((newUser) => {
+              done(null, newUser);
+            });
+            readyToCreate = true;
           }
         }
+      } else {
+        if (currentUser.facebookId && currentUser.image) {
+          done(null, currentUser);
+        }
+        if (!currentUser.facebookId || !currentUser.image) {
+          if (!currentUser.facebookId) {
+            currentUser.facebookId = profile.id;
+          }
+          if (!currentUser.image) {
+            currentUser.image = profile.photos[0].value
+          }
+          currentUser.save();
+          done(null, currentUser);
+        }
+      }
     })
   )
 }

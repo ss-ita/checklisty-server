@@ -18,10 +18,10 @@ module.exports = {
         while (!readyToCreate) {
 
           const temporalUser = await User.findOne({ username: correctUsername });
-          
+
           if (temporalUser) {
             const pattern = /\d+$/gm;
-            
+
             if (correctUsername.match(pattern)) {
               let numOfUsername = correctUsername.match(pattern);
               numOfUsername = Number(numOfUsername[0]) + 1;
@@ -29,7 +29,7 @@ module.exports = {
             } else {
               correctUsername = correctUsername + i;
             }
-            
+
           } else {
             new User({
               googleId: profile.id,
