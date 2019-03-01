@@ -1,15 +1,17 @@
 const aws = require('aws-sdk');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
 const { User } = require('../models/user-model');
 
 aws.config.update({
-    secretAccessKey: process.env.SECRETKEY,
-    accessKeyId: process.env.ACCESSKEY,
+    secretAccessKey: process.env.AWS_SECRETKEY,
+    accessKeyId: process.env.AWS_ACCESSKEY,
     region: 'us-east-1'
 });
 
 const s3 = new aws.S3();
 
-const avatarUpload = async (req,res) => {
+const avatarUploadBase64 = async (req,res) => {
 
   const base64Data = Buffer.from(req.body.img.replace(/^data:image\/\w+;base64,/, ""),'base64')
   const type = req.body.img.split(';')[0].split('/')[1];
@@ -34,24 +36,48 @@ const avatarUpload = async (req,res) => {
     s3.deleteObject(paramsDel, () => {});
   }
   s3.upload(params, async (err, data) => {
-      if (err) res.status(500).json(err);
+      if (err) res.status(500).json(err.message);
       try {
-        await User.findByIdAndUpdate(userId,{ $set: { image: data.Location } });
-        res.send(data.Location);
+        await User.findByIdAndUpdate(userId, { $set: { image: data.Location } });
+        res.status.json({ image: data.Location });
       } catch (err) {
-          res.status(500).json(err);
+          res.status(500).json(err.message);
       }
   });
 };
 
-const avatarGet = async (req, res) => {
-    try{
-      const userId = req.userData.id;
-      const user = await User.findById(userId);
-      res.send(user.image);
-    } catch (err){
-        res.status(500).json(err);
-    }
+const avatarUploadMulter = (req, res, next) => {
+  try{
+    if (req.body.img) return next();
+    const uploadMulter = multer({
+      storage: multerS3({
+        s3: s3,
+        bucket: 'checklisty',
+        acl: 'public-read',
+        metadata: (req, file, cb) => {
+          cb(null, {fieldName: file.fieldname});
+        },
+        key: (req, file, cb) => {
+          cb(null, Date.now().toString() + '-' + file.originalname.toString())
+        }
+      })
+    })
+    const upload = uploadMulter.single('avatar');
+    upload(req, res, async err => {
+      if (err) return res.status(422).json(err.message);
+      try{
+        const userId = req.userData.id;
+        await User.findByIdAndUpdate(userId, { $set: { image: req.file.location } });
+      }
+      catch (err){
+        return res.status(500).json(err.message);
+      }
+      return res.status(200).json({ message: 'Successfuly uploaded!'});
+    })
+  }
+  catch (err){
+    res.status(500).json(err.message);
+  }
 }
 
-module.exports = { avatarUpload, avatarGet };
+module.exports = { avatarUploadBase64, avatarUploadMulter };

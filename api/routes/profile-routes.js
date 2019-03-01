@@ -5,7 +5,6 @@ const router = new express.Router();
 
 router.put('/', profileController.updateProfile);
 router.put('/updatePassword', profileController.updateUserPassword);
-router.get('/avatar', avatarController.avatarGet);
-router.post('/avatar', avatarController.avatarUpload);
+router.post('/avatar', avatarController.avatarUploadMulter, avatarController.avatarUploadBase64);
 
 module.exports = router;
