@@ -76,8 +76,8 @@ const validate = (user) => {
   const shema = {
     username: Joi.string()
       .min(minLength)
-      .max(maxLength)
-      .required(),
+      .max(maxLength),
+      // .required(),
     email: Joi.string()
       .min(minLength)
       .email(),
