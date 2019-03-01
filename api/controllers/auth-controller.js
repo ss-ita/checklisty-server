@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { User, validate } = require('../models/user-model');
 
+const url = 'http://localhost:3000';
+
 const signUp = async (req, res) => {
   try {
     const { error } = validate(req.body);
@@ -73,16 +75,16 @@ const validateUser = async (req, res) => {
 }
 
 const socialAuth = async (req, res) => {
-  try {
-    const id = req.session.passport.user;
-    const user = await User.findById(id);
+    try {
+        const id = req.session.passport.user;
+        const user = await User.findById(id);
 
-    const token = user.generateAuthToken();
+        const token = user.generateAuthToken();
 
-    return res.redirect(`http://localhost:3000/redirect/?access-token=${token}`);
-  } catch (err) {
-    res.status(500).json(err);
-  }
+        return res.redirect(`${url}/redirect/?access-token=${token}`);
+    } catch (err) {
+        res.status(500).json(err);
+    }
 }
 
 module.exports = { signUp, signIn, validateUser, socialAuth };
