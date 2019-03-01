@@ -3,21 +3,23 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { User, validate } = require('../models/user-model');
 
+const url = 'http://localhost:3000';
+
 const signUp = async (req, res) => {
     try {
         const { error } = validate(req.body);
-        if (error) return res.status(400).json({message: error.details[0].message});
+        if (error) return res.status(400).json({ message: error.details[0].message });
 
-        const { username, email, password } = req.body; 
+        const { username, email, password } = req.body;
         if (!email || !password || !username) {
-            return res.status(422).json({message: 'Please, fill up all fields.'});
+            return res.status(422).json({ message: 'Please, fill up all fields.' });
         }
 
         let user = await User.findOne({ username });
-        if (user) return res.status(422).json({username: 'User with this username is already exist.'});
+        if (user) return res.status(422).json({ username: 'User with this username is already exist.' });
 
         user = await User.findOne({ email });
-        if (user) return res.status(422).json({email: 'User with this email is already exist.'});
+        if (user) return res.status(422).json({ email: 'User with this email is already exist.' });
 
         user = new User({ username, email, password });
 
@@ -28,7 +30,7 @@ const signUp = async (req, res) => {
         const token = user.generateAuthToken();
         res
             .header("access-token", token)
-            .status(200).json({message: 'User created', user: {email, username}})
+            .status(200).json({ message: 'User created', user: { email, username } })
 
     } catch (err) {
         res.status(500).json(err);
@@ -37,23 +39,23 @@ const signUp = async (req, res) => {
 
 const signIn = async (req, res) => {
     try {
-        const { email, password } = req.body; 
+        const { email, password } = req.body;
         if (!email || !password) {
-            return res.status(422).json({message: 'email and password are required.'});
+            return res.status(422).json({ message: 'email and password are required.' });
         }
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: 'Invalid email or password.'});
+        if (!user) return res.status(400).json({ message: 'Invalid email or password.' });
 
         const validPassword = await bcrypt.compareSync(password, user.password);
-        if (!validPassword) return res.status(400).json({ message: 'Invalid email or password.'});
-        
+        if (!validPassword) return res.status(400).json({ message: 'Invalid email or password.' });
+
         user.password = '';
 
         const token = user.generateAuthToken();
         res
             .header("access-token", token)
-            .status(200).json({user})
-    } catch(err) {
+            .status(200).json({ user })
+    } catch (err) {
         res.status(500).json(err);
     }
 }
@@ -78,8 +80,8 @@ const socialAuth = async (req, res) => {
         const user = await User.findById(id);
 
         const token = user.generateAuthToken();
-        
-        return res.redirect(`http://localhost:3000/redirect/?access-token=${token}`);
+
+        return res.redirect(`${url}/redirect/?access-token=${token}`);
     } catch (err) {
         res.status(500).json(err);
     }
