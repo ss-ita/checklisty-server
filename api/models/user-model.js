@@ -4,8 +4,6 @@ var uniqueValidator = require('mongoose-unique-validator');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 
-const env = require('../../dot.env');
-
 const minLength = 3;
 const maxLength = 25;
 
@@ -64,7 +62,7 @@ userSchema.methods.generateAuthToken = function() {
     {
       id: this._id,
     },
-    env.JWT_KEY,
+    process.env.JWT_KEY,
     { expiresIn: '30d' }
   );
   return token;
@@ -76,14 +74,14 @@ const validate = (user) => {
   const shema = {
     username: Joi.string()
       .min(minLength)
-      .max(maxLength),
-      // .required(),
+      .max(maxLength)
+      .required(),
     email: Joi.string()
       .min(minLength)
       .email(),
     password: Joi.string()
     .min(minLength)
-    .max(maxLength)
+    .max(maxLength),
   };
   return Joi.validate(user, shema);
 }
