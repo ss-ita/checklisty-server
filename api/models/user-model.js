@@ -12,12 +12,6 @@ const userSchema = new mongoose.Schema({
       required: true,
       maxlength: maxLength,
       unique: true,
-      validate: {
-        validator: function(v) {
-          return /^[a-zA-Z0-9_]*$/.test(v);
-        },
-        message: props => `${props.value} is not a valid name!`
-      },
     },
     email: {
       type: String, 
@@ -66,14 +60,13 @@ const validate = (user) => {
   const shema = {
     username: Joi.string()
       .max(maxLength)
-      .regex(/^[a-zA-Z0-9_]*$/)
-      .required(),
+      .regex(/^[a-zA-Z0-9_]*$/),
     email: Joi.string()
-      .email()
-      .required(),
+      .email(),
     password: Joi.string()
       .min(minLength)
-      .max(maxLength)
+      .regex(/\w|[!#$%&'*+/-/=?^_`{|}~]|\s/)
+      .max(128)
   };
   return Joi.validate(user, shema);
 }
