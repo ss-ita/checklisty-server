@@ -2,6 +2,7 @@ const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
 const { User } = require('../../api/models/user-model');
 const usernameCheck = require('../tools/usernameCheck');
+const uniqueUsernameSearch = require('../tools/uniqueUsernameSearch');
 
 module.exports = {
   facebookStrategy: passport.use(
@@ -15,22 +16,13 @@ module.exports = {
 
       if (!currentUser) {
         let correctUsername = usernameCheck(profile.displayName);
-        let i = 0, readyToCreate = false;
+        let readyToCreate = false;
 
         while (!readyToCreate) {
           const temporalUser = await User.findOne({ username: correctUsername });
 
           if (temporalUser) {
-            const pattern = /\d+$/gm;
-
-            if (correctUsername.match(pattern)) {
-              let numOfUsername = correctUsername.match(pattern);
-              numOfUsername = Number(numOfUsername[0]) + 1;
-              correctUsername = correctUsername.replace(pattern, numOfUsername);
-            } else {
-              correctUsername = correctUsername + i;
-            }
-
+            correctUsername = uniqueUsernameSearch(correctUsername);
           } else {
             new User({
               acebookId: profile.id,

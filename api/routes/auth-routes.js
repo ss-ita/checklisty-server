@@ -12,19 +12,19 @@ router.post('/validate', authController.validateUser);
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get('/google/redirect',
-  passport.authenticate('google', { failureRedirect: '/api/auth/google' }),
+  passport.authenticate('google', { failureRedirect: 'localhost:3000/auth/signin' }),
   authController.socialAuth);
 
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 
 router.get('/facebook/redirect',
-  passport.authenticate('facebook', { failureRedirect: '/api/auth/facebook' }),
+  passport.authenticate('facebook', { failureRedirect: 'localhost:3000/auth/signin' }),
   authController.socialAuth);
 
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
 router.get('/github/redirect',
-  passport.authenticate('github', { failureRedirect: '/api/auth/github' }),
+  passport.authenticate('github', { failureRedirect: 'localhost:3000/auth/signin' }),
   authController.socialAuth);
 
 module.exports = router;

@@ -2,6 +2,7 @@ const passport = require('passport');
 const GithubStrategy = require('passport-github2').Strategy;
 const { User } = require('../../api/models/user-model');
 const usernameCheck = require('../tools/usernameCheck');
+const uniqueUsernameSearch = require('../tools/uniqueUsernameSearch');
 
 module.exports = {
   githubStrategy: passport.use(
@@ -15,22 +16,13 @@ module.exports = {
       if (!currentUser) {
 
         let correctUsername = usernameCheck(profile.displayName);
-        let i = 0, readyToCreate = false;
-        while (!readyToCreate) {
+        let readyToCreate = false;
 
+        while (!readyToCreate) {
           const temporalUser = await User.findOne({ username: correctUsername });
 
           if (temporalUser) {
-            const pattern = /\d+$/gm;
-
-            if (correctUsername.match(pattern)) {
-              let numOfUsername = correctUsername.match(pattern);
-              numOfUsername = Number(numOfUsername[0]) + 1;
-              correctUsername = correctUsername.replace(pattern, numOfUsername);
-            } else {
-              correctUsername = correctUsername + i;
-            }
-
+            correctUsername = uniqueUsernameSearch(correctUsername);
           } else {
             new User({
               googleId: profile.id,
