@@ -36,12 +36,12 @@ const avatarUploadBase64 = async (req,res) => {
     s3.deleteObject(paramsDel, () => {});
   }
   s3.upload(params, async (err, data) => {
-      if (err) res.status(500).json(err.message);
+      if (err) res.status(500).json(err);
       try {
         await User.findByIdAndUpdate(userId, { $set: { image: data.Location } });
         res.status.json({ image: data.Location });
       } catch (err) {
-          res.status(500).json(err.message);
+          res.status(500).json(err);
       }
   });
 };

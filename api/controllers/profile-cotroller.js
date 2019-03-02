@@ -31,6 +31,9 @@ const updateUserPassword = async (req, res) => {
         const userId = req.userData.id;
         const user = await User.findById(userId);
 
+        if (req.body.oldPassword === req.body.newPassword) return res.status(400).json({ 
+            message: 'Old and new passwords must be different!' });
+
         const { error } = validate({ password: req.body.newPassword });
         if (error) return res.status(400).json({message: error.details[0].message});
 
