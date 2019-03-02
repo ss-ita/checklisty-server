@@ -65,7 +65,7 @@ const validate = (user) => {
       .email(),
     password: Joi.string()
       .min(minLength)
-      .regex(/\w|[!#$%&'*+/-/=?^_`{|}~]|\s/)
+      .regex(/^[\w[\]!#$%&'*+/-/=?^_`{|}~|\s]*$/)
       .max(128)
   };
   return Joi.validate(user, shema);
