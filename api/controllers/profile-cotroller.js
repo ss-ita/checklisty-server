@@ -17,7 +17,7 @@ const updateProfile = async (req, res) => {
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             {$set: userParams},
-            { runValidators: true, context: 'query' }
+            { runValidators: true, context: 'query', new: true }
         ).select('-password');
         res.status(200).json({ updatedUser, message: 'Name and email changed!' });
     } catch (err) {
