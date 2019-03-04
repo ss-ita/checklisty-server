@@ -32,9 +32,10 @@ const createCheckListItem = async (req, res) => {
     const { item_title, description, details, tags, priority } = req.body;
 
     const list = await Checklist.findById(req.params.id);
-    const section = await list.sections_data.find(item => item.id === req.params.sectionId);
 
     if (!list) return res.sendStatus(404);
+
+    const section = list.sections_data.find(item => item.id === req.params.sectionId);
 
     section.items_data.push({
       item_title,
