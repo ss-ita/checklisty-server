@@ -38,8 +38,8 @@ const avatarUploadBase64 = async (req,res) => {
   s3.upload(params, async (err, data) => {
       if (err) return res.status(500).json(err);
       try {
-        await User.findByIdAndUpdate(userId, { $set: { image: data.Location } });
-        return res.status(200).json({ image: data.Location });
+        const updatedUser = await User.findByIdAndUpdate(userId, { $set: { image: data.Location } }, { new: true});
+        return res.status(200).json(updatedUser);
       } catch (err) {
           res.status(500).json(err);
       }
@@ -67,12 +67,12 @@ const avatarUploadMulter = (req, res, next) => {
       if (err) return res.status(422).json(err.message);
       try{
         const userId = req.userData.id;
-        await User.findByIdAndUpdate(userId, { $set: { image: req.file.location } });
+        const updatedUser = await User.findByIdAndUpdate(userId, { $set: { image: req.file.location } }, { new: true });
+        return res.status(200).json(updatedUser);
       }
       catch (err){
         return res.status(500).json(err.message);
       }
-      return res.status(200).json({ message: 'Successfuly uploaded!'});
     })
   }
   catch (err){
