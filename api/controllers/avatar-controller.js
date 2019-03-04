@@ -38,7 +38,7 @@ const avatarUploadBase64 = async (req,res) => {
   s3.upload(params, async (err, data) => {
       if (err) return res.status(500).json(err);
       try {
-        const updatedUser = await User.findByIdAndUpdate(userId, { $set: { image: data.Location } }, { new: true});
+        const updatedUser = await User.findByIdAndUpdate(userId, { $set: { image: data.Location } }, { new: true}).select('-password');
         return res.status(200).json(updatedUser);
       } catch (err) {
           res.status(500).json(err);
@@ -67,7 +67,7 @@ const avatarUploadMulter = (req, res, next) => {
       if (err) return res.status(422).json(err.message);
       try{
         const userId = req.userData.id;
-        const updatedUser = await User.findByIdAndUpdate(userId, { $set: { image: req.file.location } }, { new: true });
+        const updatedUser = await User.findByIdAndUpdate(userId, { $set: { image: req.file.location } }, { new: true }).select('-password');
         return res.status(200).json(updatedUser);
       }
       catch (err){
