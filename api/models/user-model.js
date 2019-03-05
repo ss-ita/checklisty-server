@@ -72,8 +72,8 @@ const validate = (user) => {
       .email()
       .required(),
     password: Joi.string()
-      .min(minLength)
-      .max(maxLength)
+    .min(minLength)
+    .max(maxLength),
   };
   return Joi.validate(user, shema);
 }
