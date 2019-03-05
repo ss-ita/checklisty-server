@@ -55,7 +55,6 @@ const createCheckListItem = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-
     try {
         const checkLists = await CheckList.find().populate('author', 'username');
         const result = checkLists.map(doc => {
@@ -87,6 +86,71 @@ const getAll = async (req, res) => {
         res.json(error);
     }
 };
+
+const getFive = async (req, res) => {
+    try {
+        const checkLists = await CheckList.find().populate('author', 'username');
+        const result = checkLists.map(doc => {
+            return {
+                id: doc.id,
+                title: doc.title,
+                author: doc.author,
+                creation_date: doc.creation_date,
+                sections_data: doc.sections_data.map(section => {
+                  return {
+                    section_title: section.section_title,
+                    items_data: section.items_data.map(item => {
+                      return {
+                        item_title: item.item_title,
+                        description: item.description,
+                        details: item.details,
+                        tags: item.tags,
+                        priority: item.priority,
+                    }
+                    })
+                  }
+                })
+            }
+        });
+        
+        res.status(200).json(result);
+
+    } catch (error) {
+        res.json(error);
+    }
+};
+
+const searchFilter = async (req, res) => {
+    try {
+        const search = req.params.filter;
+        const checkLists = await CheckList.find({"title": {$regex : `${search}`, $options: 'i'}}).populate('author', 'username');
+        const result = checkLists.map(doc => {
+                return {
+                    id: doc.id,
+                    title: doc.title,
+                    author: doc.author,
+                    creation_date: doc.creation_date,
+                    sections_data: doc.sections_data.map(section => {
+                      return {
+                        section_title: section.section_title,
+                        items_data: section.items_data.map(item => {
+                          return {
+                            item_title: item.item_title,
+                            description: item.description,
+                            details: item.details,
+                            tags: item.tags,
+                            priority: item.priority,
+                        }
+                        })
+                      }
+                    })
+                }
+        });
+        res.status(200).json(result);
+    } catch (error) {
+        res.json(error);
+    }
+}
 
 const getOne = async (req, res) => {
 
@@ -146,4 +210,4 @@ const deleteList = async (req, res) => {
     }
 };
 
-module.exports = { createCheckList, createCheckListItem, getAll, getOne, update, deleteList };
+module.exports = { createCheckList, createCheckListItem, getAll, getOne, update, deleteList, searchFilter, getFive };
