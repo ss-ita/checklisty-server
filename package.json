@@ -46,5 +46,8 @@
 			"eslint --fix",
 			"git add"
 		]
-	}
+	},
+	"eslintIgnore": [
+		"node_modules"
+	]
 }
