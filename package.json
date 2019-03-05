@@ -8,8 +8,7 @@
 	"scripts": {
 		"start": "node index.js",
 		"dev": "nodemon index.js",
-		"lint": "eslint **.js",
-		"test": "eslint **.js"
+		"lint": "eslint **/*.js"
 	},
 	"dependencies": {
 		"aws-sdk": "^2.399.0",
