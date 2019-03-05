@@ -3,10 +3,8 @@ const profileController = require('../controllers/profile-cotroller');
 const avatarController = require('../controllers/avatar-controller');
 const router = new express.Router();
 
-router.get('/', profileController.getProfile);
 router.put('/', profileController.updateProfile);
 router.put('/updatePassword', profileController.updateUserPassword);
-router.get('/avatar', avatarController.avatarGet);
-router.post('/avatar', avatarController.avatarUpload);
+router.post('/avatar', avatarController.avatarUploadMulter, avatarController.avatarUploadBase64);
 
 module.exports = router;

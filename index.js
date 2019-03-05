@@ -33,9 +33,9 @@ app.use(cors());
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
 
-app.use(bodyParser.text({ type: 'text/plain' }));
+app.use(bodyParser.text({ type: 'text/plain', limit: '50mb' }));
 
 app.use('/api', apiRouter);
 
