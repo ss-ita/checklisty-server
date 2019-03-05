@@ -17,13 +17,7 @@ const forgotPassword = async (req, res) => {
     if (!user) return res.status(400).json({ message: 'User with this email doesn\'t exists.' });
     if (!user.password) return res.status(400).json({ message: 'This user has no password. Try to sign in with social which you have used for registration' })
 
-    const token = jwt.sign(
-      {
-        id: user.id
-      },
-      process.env.JWT_KEY,
-      { expiresIn: '10m' }
-    );
+    const token = user.generateAuthToken('10m');
 
     const resetPasswordURL = `${url}/auth/reset-password/?recovery-token=${token}`;
 
