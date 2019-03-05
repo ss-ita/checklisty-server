@@ -15,12 +15,14 @@ const should = chai.should();
 describe('Authorisation', () => {
   before(() => {
     sinon.stub(mongoose.Model, 'findOne')
-      .onFirstCall().returns({ password: 'password' })
-      .onSecondCall().returns({ password: 'password', generateAuthToken:() => true });
+      .onFirstCall().returns(null)
+      .onSecondCall().returns({ password: 'password', generateAuthToken: () => true });
+    sinon.stub(bcrypt, 'compareSync').returns(true);
   });
 
   after(() => {
     mongoose.Model.findOne.restore();
+    bcrypt.compareSync.restore();
   });
 
   describe('Sign in', async () => {
@@ -47,7 +49,6 @@ describe('Authorisation', () => {
         });
     });
     it('Shold sign in', () => {
-      sinon.stub(bcrypt, 'compareSync').returns(true);
       chai.request(server)
         .post('/api/auth/signin')
         .send({ email: 'email', password: 'password' })

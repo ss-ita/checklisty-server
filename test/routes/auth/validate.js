@@ -12,7 +12,7 @@ chai.use(chaiHttp);
 
 const should = chai.should();
 
-describe('Authorisation', () => {
+describe('Authorisation Validate', () => {
   before(() => {
     sinon.stub(mongoose.Model, 'findById').returns({ select: () => 'user' });
     sinon.stub(jwt, 'verify').returns('token');

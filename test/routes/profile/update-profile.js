@@ -34,9 +34,9 @@ describe('Profile', () => {
         .set('access-token', 'token')
         .send({ username: 'JonhDoe', email: 'email' })
         .end((err, res) => {
-            res.should.have.status(200);
-            res.body.should.have.property('message');
-            res.body.message.should.eql('Name and email changed!');
+          res.should.have.status(200);
+          res.body.should.have.property('message');
+          res.body.message.should.eql('Name and email changed!');
         });
     });
     it('Shoud reject to update with message to fill all fields', () => {
@@ -45,9 +45,9 @@ describe('Profile', () => {
         .set('access-token', 'token')
         .send({})
         .end((err, res) => {
-            res.should.have.status(409);
-            res.body.should.have.property('message');
-            res.body.message.should.eql('Please fill the form!');
+          res.should.have.status(409);
+          res.body.should.have.property('message');
+          res.body.message.should.eql('Please fill the form!');
         });
     });
     it('Shoud reject with validate error', () => {
@@ -56,9 +56,9 @@ describe('Profile', () => {
         .set('access-token', 'token')
         .send({ username: 'JonhDoe', email: 'email' })
         .end((err, res) => {
-            res.should.have.status(409);
-            res.body.should.have.property('name');
-            res.body.name.should.eql('ValidationError');
+          res.should.have.status(409);
+          res.body.should.have.property('name');
+          res.body.name.should.eql('ValidationError');
         });
     });
   });
