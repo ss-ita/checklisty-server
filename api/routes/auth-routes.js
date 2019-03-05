@@ -1,7 +1,7 @@
 const express = require('express');
-const router = new express.Router();
-
 const authController = require('../controllers/auth-controller');
+const forgotPasswordController = require('../controllers/forgot-password-controller');
+const router = new express.Router();
 const passport = require('passport');
 
 const url = 'http://localhost:3000';
@@ -11,6 +11,10 @@ router.post('/signup', authController.signUp);
 router.post('/signin', authController.signIn);
 
 router.post('/validate', authController.validateUser);
+
+router.post('/forgot-password', forgotPasswordController.forgotPassword);
+
+router.post('/reset-password', forgotPasswordController.resetPassword);
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
