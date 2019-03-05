@@ -1,6 +1,7 @@
 const express = require('express');
-const authController = require('../controllers/auth-controller');
 const router = new express.Router();
+
+const authController = require('../controllers/auth-controller');
 const passport = require('passport');
 
 const url = 'http://localhost:3000';
