@@ -28,7 +28,6 @@ const signUp = async (req, res) => {
     await user.save();
 
     const token = user.generateAuthToken();
-
     res
       .header("access-token", token)
       .status(200).json({ message: 'User created', user: { email, username } })
@@ -42,11 +41,11 @@ const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(422).json({ message: 'email and password are required.' });
+      return res.status(422).json({ message: 'Email and password are required.' });
     }
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: 'Invalid email or password.' });
-    
+
     const validPassword = await bcrypt.compareSync(password, user.password);
     if (!validPassword) return res.status(400).json({ message: 'Invalid email or password.' });
 
@@ -75,16 +74,16 @@ const validateUser = async (req, res) => {
 }
 
 const socialAuth = async (req, res) => {
-    try {
-        const id = req.session.passport.user;
-        const user = await User.findById(id);
+  try {
+    const id = req.session.passport.user;
+    const user = await User.findById(id);
 
-        const token = user.generateAuthToken();
+    const token = user.generateAuthToken();
 
-        return res.redirect(`${url}/redirect/?access-token=${token}`);
-    } catch (err) {
-        res.status(500).json(err);
-    }
+    return res.redirect(`${url}/redirect/?access-token=${token}`);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 }
 
 module.exports = { signUp, signIn, validateUser, socialAuth };

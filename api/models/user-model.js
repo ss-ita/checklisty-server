@@ -14,42 +14,42 @@ const userSchema = new mongoose.Schema({
       unique: true,
     },
     email: {
-      type: String, 
+      type: String,
       required: true,
       unique: true,
     },
     password: {
-      type: String, 
+      type: String,
     },
-    googleId:{
+    googleId: {
       type: String
     },
-    facebookId:{
+    facebookId: {
       type: String
     },
-    githubId:{
-      type:String
+    githubId: {
+      type: String
     },
     team: {
       type: String
     },
-    location:{
+    location: {
       type: String
     },
-    image:{
-        type: String
+    image: {
+      type: String
     }
-})
+});
 
 userSchema.plugin(uniqueValidator);
 
-userSchema.methods.generateAuthToken = function() {
+userSchema.methods.generateAuthToken = function (expireTime = '30d') {
   const token = jwt.sign(
     {
       id: this._id,
     },
     process.env.JWT_KEY,
-    { expiresIn: '30d' }
+    { expiresIn: expireTime }
   );
   return token;
 };
