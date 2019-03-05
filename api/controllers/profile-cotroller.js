@@ -5,16 +5,13 @@ const updateProfile = async (req, res) => {
     try {
         const userId = req.userData.id;
         const user = await User.findById(userId);
-        
         const userParams = { username: req.body.username, email: req.body.email };
-
         if(!Object.keys(userParams).length) return res.status(409).json({message: "Please fill the form!"});
         const { error } = validate(req.body);
         if (error) return res.status(400).json({message: error.details[0].message});
         if (user.username === req.body.username) delete userParams.username;
         if (user.email === req.body.email) delete userParams.email;
         if(!Object.keys(userParams).length) return res.status(409).json({message: "Please change username or email!"});
-
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             {$set: userParams},
