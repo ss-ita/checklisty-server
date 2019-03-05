@@ -2,6 +2,7 @@ const passport = require('passport');
 const GithubStrategy = require('passport-github2').Strategy;
 const { User } = require('../../api/models/user-model');
 const usernameCheck = require('../tools/usernameCheck');
+const uniqueUsernameSearch = require('../tools/uniqueUsernameSearch');
 
 module.exports = {
   githubStrategy: passport.use(
@@ -10,33 +11,45 @@ module.exports = {
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
       callbackURL: "/api/auth/github/redirect",
       scope: ['user:email']
-    }, (accessToken, refreshToken, profile, done) => {
-      User.findOne({ email: profile.emails[0].value }).then((currentUser) => {
-        if (!currentUser) {
-          new User({
-            githubId: profile.id,
-            username: usernameCheck(profile.displayName),
-            email: profile.emails[0].value,
-            image: profile.photos[0].value
-          }).save().then((newUser) => {
-            done(null, newUser);
-          });
-        } else {
-          if (currentUser.githubId && currentUser.image) {
-            done(null, currentUser);
-          }
-          if (!currentUser.githubId || !currentUser.image) {
-            if (!currentUser.githubId) {
-              currentUser.githubId = profile.id;
-            }
-            if (!currentUser.image) {
-              currentUser.image = profile.photos[0].value
-            }
-            currentUser.save();
-            done(null, currentUser);
+    }, async (accessToken, refreshToken, profile, done) => {
+      const currentUser = await User.findOne({ email: profile.emails[0].value });
+      if (!currentUser) {
+
+        let correctUsername = usernameCheck(profile.displayName);
+        let readyToCreate = false;
+
+        while (!readyToCreate) {
+          const temporalUser = await User.findOne({ username: correctUsername });
+
+          if (temporalUser) {
+            correctUsername = uniqueUsernameSearch(correctUsername);
+          } else {
+            new User({
+              googleId: profile.id,
+              username: correctUsername,
+              email: profile.emails[0].value,
+              image: profile.photos[0].value
+            }).save().then((newUser) => {
+              done(null, newUser);
+            });
+            readyToCreate = true;
           }
         }
-      });
+      } else {
+        if (currentUser.githubId && currentUser.image) {
+          done(null, currentUser);
+        }
+        if (!currentUser.githubId || !currentUser.image) {
+          if (!currentUser.githubId) {
+            currentUser.githubId = profile.id;
+          }
+          if (!currentUser.image) {
+            currentUser.image = profile.photos[0].value
+          }
+          currentUser.save();
+          done(null, currentUser);
+        }
+      }
     })
   )
 }

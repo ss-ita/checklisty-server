@@ -5,6 +5,7 @@ const updateProfile = async (req, res) => {
     try {
         const userId = req.userData.id;
         const user = await User.findById(userId);
+        
         const userParams = { username: req.body.username, email: req.body.email };
 
         if(!Object.keys(userParams).length) return res.status(409).json({message: "Please fill the form!"});
@@ -27,7 +28,7 @@ const updateProfile = async (req, res) => {
 }
 
 const updateUserPassword = async (req, res) => {
-    try{
+    try {
         const userId = req.userData.id;
         const user = await User.findById(userId);
 
@@ -44,8 +45,9 @@ const updateUserPassword = async (req, res) => {
         const newPassword = bcrypt.hashSync(req.body.newPassword, salt);
 
         await User.findByIdAndUpdate(userId, { $set: { password: newPassword } });
+
         res.status(200).json({ message: 'Password changed!' });
-    } catch(err){
+    } catch (err) {
         res.status(500).json(err);
     }
 }
