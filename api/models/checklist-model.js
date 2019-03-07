@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slug = require('mongoose-slug-updater');
 const Section = require('./section-model');
 const Joi = require('joi');
 
@@ -6,9 +7,12 @@ const minLength = 1;
 const maxLength = 256;
 const maxDescLength = 1024;
 
+mongoose.plugin(slug);
+
 const checklistSchema = new mongoose.Schema({
   title: { type: String },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  slug: { type: String, slug: "title", unique: true, slugPaddingSize: 2 },
   creation_date: { type: Date, default: Date.now() },
   sections_data: [Section.sectionSchema]
 });
