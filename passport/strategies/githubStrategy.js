@@ -9,7 +9,7 @@ module.exports = {
     new GithubStrategy({
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: "/api/auth/github/redirect",
+      callbackURL: "https://summer-brand-232313.appspot.com/api/auth/github/redirect",
       scope: ['user:email']
     }, async (accessToken, refreshToken, profile, done) => {
       const currentUser = await User.findOne({ email: profile.emails[0].value });
