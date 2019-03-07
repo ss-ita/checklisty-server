@@ -125,7 +125,7 @@ const searchFilter = async (req, res) => {
     try {
         const search = req.params.filter;
         const checkLists = await Checklist.find({"title": {$regex : `${search}`, $options: 'i'}}).populate('author', 'username');
-        const totalItems = Math.ceil(await Checklist.count() / 5);
+        const totalItems = Math.ceil(await Checklist.find({"title": {$regex : `${search}`, $options: 'i'}}).count() / 5);
         const result = checkLists.map(doc => {
                 return {
                     id: doc.id,
