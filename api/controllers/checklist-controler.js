@@ -56,6 +56,7 @@ const createCheckListItem = async (req, res) => {
 const getAll = async (req, res) => {
     try {
         const checkLists = await Checklist.find().populate('author', 'username');
+        const totalItems = await Checklist.count();
         const result = checkLists.map(doc => {
             return {
                 id: doc.id,
@@ -79,11 +80,45 @@ const getAll = async (req, res) => {
             }
         });
         
-        res.status(200).json(result);
+        res.status(200).json({result, totalItems});
 
     } catch (error) {
         res.json(error);
     }
+};
+const getFive = async (req, res) => {
+  try {
+      const howMuch = (parseInt(req.params.activePage) - 1) * 5;
+      const checkLists = await Checklist.find().skip(howMuch).limit(5).populate('author', 'username');
+      const totalItems = Math.ceil(await Checklist.count() / 5);
+      const result = checkLists.map(doc => {
+          return {
+              id: doc.id,
+              title: doc.title,
+              author: doc.author,
+              creation_date: doc.creation_date,
+              sections_data: doc.sections_data.map(section => {
+                return {
+                  section_title: section.section_title,
+                  items_data: section.items_data.map(item => {
+                    return {
+                      item_title: item.item_title,
+                      description: item.description,
+                      details: item.details,
+                      tags: item.tags,
+                      priority: item.priority,
+                  }
+                  })
+                }
+              })
+          }
+      });
+      
+      res.status(200).json({result, totalItems});
+
+  } catch (error) {
+      res.json(error);
+  }
 };
 
 const searchFilter = async (req, res) => {
@@ -176,4 +211,4 @@ const deleteList = async (req, res) => {
   }
 };
 
-module.exports = { createCheckList, createCheckListItem, getAll, getOne, update, deleteList, searchFilter };
+module.exports = { createCheckList, createCheckListItem, getAll, getOne, update, deleteList, searchFilter, getFive };
