@@ -40,6 +40,8 @@ app.use(bodyParser.text({ type: 'text/plain', limit: '50mb' }));
 app.use('/api', apiRouter);
 
 app.get('/', (req, res) => res.json('App get works'));
-app.listen(port, () => console.log('Server is running on port ' + port)); //eslint-disable-line
+const server = app.listen(port, () => console.log('Server is running on port ' + port)); //eslint-disable-line
+
+module.exports.stop = () => server.close();
 
 module.exports = app;

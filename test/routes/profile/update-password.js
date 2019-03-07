@@ -16,16 +16,12 @@ const should = chai.should();
 describe('Profile', () => {
   before(() => {
     sinon.stub(mongoose.Model, 'findById')
-      .onFirstCall().returns({ password: 'oldPassword' })
-      .onSecondCall().returns({ select: () => null });
+      .returns({ password: 'oldPassword',  select: () => null });
     sinon.stub(mongoose.Model, 'findByIdAndUpdate').returns({})
     sinon.stub(jwt, 'verify').returns({ decoded: { id: '1' } });
     sinon.stub(bcrypt, 'compareSync')
       .onFirstCall().returns(false)
       .onSecondCall().returns(true);
-    // sinon.stub(bcrypt, 'compareSync')
-    //     .onFirstCall().returns(false)
-    //     .onSecondCall().returns(true);
   });
 
   after(() => {
@@ -36,18 +32,43 @@ describe('Profile', () => {
   });
 
   describe('Update password', async () => {
-    it('Shoud reject with messageq invalid old password', () => {
+    it('Should reject same old and new password', () => {
       chai.request(server)
         .put('/api/profile/updatePassword')
         .set('access-token', 'token')
-        .send({ oldPassword: 'old', newPassword: 'new' })
+        .send({ oldPassword: 'Password', newPassword: 'Password' })
+        .end((err, res) => {
+          res.should.have.status(400);
+          res.body.should.have.property('message');
+          res.body.message.should.eql('Old and new passwords must be different!');
+        });
+    });
+
+    it('Should reject with validation error', () => {
+      chai.request(server)
+        .put('/api/profile/updatePassword')
+        .set('access-token', 'token')
+        .send({ oldPassword: 'OldPassword', newPassword: 'Pas' })
+        .end((err, res) => {
+          res.should.have.status(400);
+          res.body.should.have.property('message');
+          res.body.message.should.eql('"password" length must be at least 6 characters long');
+        });
+    });
+
+    it('Should reject with messageq invalid old password', () => {
+      chai.request(server)
+        .put('/api/profile/updatePassword')
+        .set('access-token', 'token')
+        .send({ oldPassword: 'old', newPassword: 'newPassword' })
         .end((err, res) => {
           res.should.have.status(400);
           res.body.should.have.property('message');
           res.body.message.should.eql('Invalid old password!');
         });
     });
-    it('Shoud update password', () => {
+
+    it('Should update password', () => {
       chai.request(server)
         .put('/api/profile/updatePassword')
         .set('access-token', 'token')

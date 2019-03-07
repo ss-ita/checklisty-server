@@ -6,17 +6,20 @@ const updateProfile = async (req, res) => {
         const userId = req.userData.id;
         const user = await User.findById(userId);
         const userParams = { username: req.body.username, email: req.body.email };
-        if(!Object.keys(userParams).length) return res.status(409).json({message: "Please fill the form!"});
+        
+        if(!userParams.username && !userParams.email) return res.status(409).json({message: "Please fill the form!"});
         const { error } = validate(req.body);
         if (error) return res.status(400).json({message: error.details[0].message});
         if (user.username === req.body.username) delete userParams.username;
         if (user.email === req.body.email) delete userParams.email;
         if(!Object.keys(userParams).length) return res.status(409).json({message: "Please change username or email!"});
+        
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             {$set: userParams},
             { runValidators: true, context: 'query', new: true }
         ).select('-password');
+        
         res.status(200).json({ updatedUser, message: 'Name and email changed!' });
     } catch (err) {
         if (err.name === 'ValidationError') res.status(409).json(err);
@@ -30,11 +33,12 @@ const updateUserPassword = async (req, res) => {
         const user = await User.findById(userId);
 
         if (req.body.oldPassword === req.body.newPassword) return res.status(400).json({ 
-            message: 'Old and new passwords must be different!' });
+            message: 'Old and new passwords must be different!' 
+        });
 
         const { error } = validate({ password: req.body.newPassword });
         if (error) return res.status(400).json({message: error.details[0].message});
-
+        
         const validPassword = bcrypt.compareSync(req.body.oldPassword, user.password);
         if (!validPassword) return res.status(400).json({ message: 'Invalid old password!'});
 

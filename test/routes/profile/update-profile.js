@@ -14,7 +14,7 @@ const should = chai.should();
 
 describe('Profile', () => {
   before(() => {
-    sinon.stub(mongoose.Model, 'findById').returns({ user: { username: 'JonhDoe', email: 'email' } });
+    sinon.stub(mongoose.Model, 'findById').returns({ username: 'JonhDoe', email: 'email@email.com' });
     sinon.stub(mongoose.Model, 'findByIdAndUpdate')
       .onFirstCall().returns({ select: () => 'user' })
       .onSecondCall().throws({ name: 'ValidationError' });
@@ -28,17 +28,6 @@ describe('Profile', () => {
   });
 
   describe('Profile update', async () => {
-    it('Shoud update profile', () => {
-      chai.request(server)
-        .put('/api/profile/')
-        .set('access-token', 'token')
-        .send({ username: 'JonhDoe', email: 'email' })
-        .end((err, res) => {
-          res.should.have.status(200);
-          res.body.should.have.property('message');
-          res.body.message.should.eql('Name and email changed!');
-        });
-    });
     it('Shoud reject to update with message to fill all fields', () => {
       chai.request(server)
         .put('/api/profile/')
@@ -56,9 +45,31 @@ describe('Profile', () => {
         .set('access-token', 'token')
         .send({ username: 'JonhDoe', email: 'email' })
         .end((err, res) => {
+          res.should.have.status(400);
+          res.body.should.have.property('message');
+          res.body.message.should.eql('"email" must be a valid email');
+        });
+    });
+    it('Shoud reject with to change email or username', () => {
+      chai.request(server)
+        .put('/api/profile/')
+        .set('access-token', 'token')
+        .send({ username: 'JonhDoe', email: 'email@email.com' })
+        .end((err, res) => {
           res.should.have.status(409);
-          res.body.should.have.property('name');
-          res.body.name.should.eql('ValidationError');
+          res.body.should.have.property('message');
+          res.body.message.should.eql('Please change username or email!');
+        });
+    });
+    it('Shoud update profile', () => {
+      chai.request(server)
+        .put('/api/profile/')
+        .set('access-token', 'token')
+        .send({ username: 'NewJonhDoe', email: 'email@email.com' })
+        .end((err, res) => {
+          res.should.have.status(200);
+          res.body.should.have.property('message');
+          res.body.message.should.eql('Name and email changed!');
         });
     });
   });

@@ -54,80 +54,84 @@ const createCheckListItem = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-    try {
-        const checkLists = await Checklist.find().populate('author', 'username');
-        const result = checkLists.map(doc => {
-            return {
-                id: doc.id,
-                title: doc.title,
-                author: doc.author,
-                creation_date: doc.creation_date,
-                sections_data: doc.sections_data.map(section => {
-                  return {
-                    section_title: section.section_title,
-                    items_data: section.items_data.map(item => {
-                      return {
-                        item_title: item.item_title,
-                        description: item.description,
-                        details: item.details,
-                        tags: item.tags,
-                        priority: item.priority,
-                    }
-                    })
-                  }
-                })
-            }
-        });
-        
-        res.status(200).json(result);
 
-    } catch (error) {
-        res.json(error);
-    }
+  try {
+    const checkLists = await Checklist.find().populate('author', 'username');
+    const result = checkLists.map(doc => {
+      return {
+        id: doc.id,
+        title: doc.title,
+        author: doc.author,
+        slug: doc.slug,
+        creation_date: doc.creation_date,
+        sections_data: doc.sections_data.map(section => {
+          return {
+            section_title: section.section_title,
+            items_data: section.items_data.map(item => {
+              return {
+                item_title: item.item_title,
+                description: item.description,
+                details: item.details,
+                tags: item.tags,
+                priority: item.priority,
+              }
+            })
+          }
+        })
+      }
+    });
+
+    res.status(200).json(result);
+
+  } catch (error) {
+    res.json(error);
+  }
 };
 
 const searchFilter = async (req, res) => {
-    try {
-        const search = req.params.filter;
-        const checkLists = await Checklist.find({"title": {$regex : `${search}`, $options: 'i'}}).populate('author', 'username');
-        const result = checkLists.map(doc => {
-                return {
-                    id: doc.id,
-                    title: doc.title,
-                    author: doc.author,
-                    creation_date: doc.creation_date,
-                    sections_data: doc.sections_data.map(section => {
-                      return {
-                        section_title: section.section_title,
-                        items_data: section.items_data.map(item => {
-                          return {
-                            item_title: item.item_title,
-                            description: item.description,
-                            details: item.details,
-                            tags: item.tags,
-                            priority: item.priority,
-                        }
-                        })
-                      }
-                    })
-                }
-        });
-        res.status(200).json(result);
-    } catch (error) {
-        res.json(error);
-    }
+  try {
+    const search = req.params.filter;
+    const checkLists = await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).populate('author', 'username');
+    const result = checkLists.map(doc => {
+      return {
+        id: doc.id,
+        title: doc.title,
+        author: doc.author,
+        slug: doc.slug,
+        creation_date: doc.creation_date,
+        sections_data: doc.sections_data.map(section => {
+          return {
+            section_title: section.section_title,
+            items_data: section.items_data.map(item => {
+              return {
+                item_title: item.item_title,
+                description: item.description,
+                details: item.details,
+                tags: item.tags,
+                priority: item.priority,
+              }
+            })
+          }
+        })
+      }
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    res.json(error);
+  }
 }
 
 const getOne = async (req, res) => {
 
   try {
-    const list = await Checklist.findById(req.params.id);
+    const list = await Checklist.findOne({ slug: req.params.id });
     if (!list) return res.sendStatus(404);
 
     const result = {
       id: list.id,
       title: list.title,
       author: list.author,
+      slug: list.slug,
       creation_date: list.creation_date,
       sections_data: list.sections_data.map(section => {
         return {
