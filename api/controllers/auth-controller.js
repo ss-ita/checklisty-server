@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { User, validate } = require('../models/user-model');
 
-const url = 'http://localhost:3000';
+const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 
 const signUp = async (req, res) => {
   try {
@@ -80,7 +80,7 @@ const socialAuth = async (req, res) => {
 
     const token = user.generateAuthToken();
 
-    return res.redirect(`${url}/redirect/?access-token=${token}`);
+    return res.redirect(`${baseURL}/redirect/?access-token=${token}`);
   } catch (err) {
     res.status(500).json(err);
   }

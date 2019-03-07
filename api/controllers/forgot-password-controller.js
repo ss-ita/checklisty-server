@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const { User } = require('../models/user-model');
 const emailGenerate = require('./email-generator')
 
-const url = 'http://localhost:3000';
+const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 
 const forgotPassword = async (req, res) => {
   try {
@@ -19,7 +19,7 @@ const forgotPassword = async (req, res) => {
 
     const token = user.generateAuthToken('10m');
 
-    const resetPasswordURL = `${url}/auth/reset-password/?recovery-token=${token}`;
+    const resetPasswordURL = `${baseURL}/auth/reset-password/?recovery-token=${token}`;
 
     const smtpTransport = nodemailer.createTransport({
       service: 'gmail',
