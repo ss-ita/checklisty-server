@@ -157,13 +157,14 @@ const searchFilter = async (req, res) => {
 const getOne = async (req, res) => {
 
   try {
-    const list = await Checklist.findById(req.params.id);
+    const list = await Checklist.findOne({ slug: req.params.id });
     if (!list) return res.sendStatus(404);
 
     const result = {
       id: list.id,
       title: list.title,
       author: list.author,
+      slug: list.slug,
       creation_date: list.creation_date,
       sections_data: list.sections_data.map(section => {
         return {
