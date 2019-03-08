@@ -54,13 +54,10 @@ const createCheckListItem = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-  try {
-    const checkLists = await Checklist.find().populate('author', 'username');
-    const result = checkLists.map(doc => {
-      return {
-        id: doc.id,
+ id: doc.id,
         title: doc.title,
         author: doc.author,
+        slug: doc.slug,
         creation_date: doc.creation_date,
         sections_data: doc.sections_data.map(section => {
           return {
@@ -95,6 +92,7 @@ const searchFilter = async (req, res) => {
         id: doc.id,
         title: doc.title,
         author: doc.author,
+        slug: doc.slug,
         creation_date: doc.creation_date,
         sections_data: doc.sections_data.map(section => {
           return {
@@ -116,7 +114,7 @@ const searchFilter = async (req, res) => {
   } catch (error) {
     res.json(error);
   }
-};
+}
 
 const searchByAuthor = async (req, res) => {
   try {
@@ -127,6 +125,7 @@ const searchByAuthor = async (req, res) => {
       return {
         id: doc.id,
         title: doc.title,
+        slug: doc.slug,
         tags: doc.sections_data.map(data => {
           const tags = [];
           data.items_data.map(el => {
@@ -165,13 +164,14 @@ const searchByAuthor = async (req, res) => {
 const getOne = async (req, res) => {
 
   try {
-    const list = await Checklist.findById(req.params.id);
+    const list = await Checklist.findOne({ slug: req.params.id });
     if (!list) return res.sendStatus(404);
 
     const result = {
       id: list.id,
       title: list.title,
       author: list.author,
+      slug: list.slug,
       creation_date: list.creation_date,
       sections_data: list.sections_data.map(section => {
         return {
