@@ -62,6 +62,7 @@ const getAll = async (req, res) => {
                 id: doc.id,
                 title: doc.title,
                 author: doc.author,
+                slug: doc.slug,
                 creation_date: doc.creation_date,
                 sections_data: doc.sections_data.map(section => {
                   return {
@@ -96,6 +97,7 @@ const getFive = async (req, res) => {
               id: doc.id,
               title: doc.title,
               author: doc.author,
+              slug: doc.slug,
               creation_date: doc.creation_date,
               sections_data: doc.sections_data.map(section => {
                 return {
@@ -131,6 +133,7 @@ const searchFilter = async (req, res) => {
                     id: doc.id,
                     title: doc.title,
                     author: doc.author,
+                    slug: doc.slug,
                     creation_date: doc.creation_date,
                     sections_data: doc.sections_data.map(section => {
                       return {
