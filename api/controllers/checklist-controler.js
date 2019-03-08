@@ -87,7 +87,6 @@ const getAll = async (req, res) => {
         res.json(error);
     }
 };
-
 const getFive = async (req, res) => {
   try {
       const howMuch = (parseInt(req.params.activePage) - 1) * 5;
@@ -127,8 +126,13 @@ const getFive = async (req, res) => {
 const searchFilter = async (req, res) => {
     try {
         const search = req.params.filter;
-        const checkLists = await Checklist.find({"title": {$regex : `${search}`, $options: 'i'}}).populate('author', 'username');
+        let howMuch = (parseInt(req.params.activePage) - 1) * 5;
         const totalItems = Math.ceil(await Checklist.find({"title": {$regex : `${search}`, $options: 'i'}}).count() / 5);
+        if(howMuch > totalItems){
+          howMuch = totalItems;
+        }
+        const checkLists = await Checklist.find({"title": {$regex : `${search}`, $options: 'i'}}).sort({ "creation_date": -1}).skip(howMuch).limit(5).populate('author', 'username');
+        
         const result = checkLists.map(doc => {
                 return {
                     id: doc.id,
