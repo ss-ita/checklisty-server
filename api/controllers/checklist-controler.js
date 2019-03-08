@@ -162,6 +162,51 @@ const searchFilter = async (req, res) => {
     }
 }
 
+const searchByAuthor = async (req, res) => {
+  try {
+    const author = req.params.id;
+    const lists = await Checklist.find({ author });
+
+    const result = lists.map(doc => {
+      return {
+        id: doc.id,
+        title: doc.title,
+        slug: doc.slug,
+        tags: doc.sections_data.map(data => {
+          const tags = [];
+          data.items_data.map(el => {
+            el.tags.map(item => {
+              if (!tags.includes(item)) {
+                tags.push(item);
+              }
+            })
+          });
+          return tags;
+        }),
+        creation_date: doc.creation_date,
+        sections_data: doc.sections_data.map(section => {
+          return {
+            section_title: section.section_title,
+            items_data: section.items_data.map(item => {
+              return {
+                item_title: item.item_title,
+                description: item.description,
+                details: item.details,
+                tags: item.tags,
+                priority: item.priority,
+              }
+            })
+          }
+        })
+      }
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.json(error.message);
+  }
+}
+
 const getOne = async (req, res) => {
 
   try {
@@ -213,7 +258,7 @@ const deleteList = async (req, res) => {
   try {
     const deletedList = await Checklist.findByIdAndDelete(req.params.id);
     if (deletedList) {
-      res.status(200).json({ message: `Deleted Check List Title: ${deletedList.title}` });
+      res.status(200).json({ message: `Deleted list: ${deletedList.title}` });
     } else res.sendStatus(404);
 
   } catch (error) {
@@ -221,4 +266,14 @@ const deleteList = async (req, res) => {
   }
 };
 
-module.exports = { createCheckList, createCheckListItem, getAll, getOne, update, deleteList, searchFilter, getFive };
+module.exports = {
+  createCheckList,
+  createCheckListItem,
+  getAll,
+  getOne,
+  update,
+  deleteList,
+  searchByAuthor,
+  searchFilter,
+  getFive
+};
