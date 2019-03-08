@@ -87,6 +87,7 @@ const getAll = async (req, res) => {
         res.json(error);
     }
 };
+
 const getFive = async (req, res) => {
   try {
       const howMuch = (parseInt(req.params.activePage) - 1) * 5;
@@ -157,6 +158,51 @@ const searchFilter = async (req, res) => {
     }
 }
 
+const searchByAuthor = async (req, res) => {
+  try {
+    const author = req.params.id;
+    const lists = await Checklist.find({ author });
+
+    const result = lists.map(doc => {
+      return {
+        id: doc.id,
+        title: doc.title,
+        slug: doc.slug,
+        tags: doc.sections_data.map(data => {
+          const tags = [];
+          data.items_data.map(el => {
+            el.tags.map(item => {
+              if (!tags.includes(item)) {
+                tags.push(item);
+              }
+            })
+          });
+          return tags;
+        }),
+        creation_date: doc.creation_date,
+        sections_data: doc.sections_data.map(section => {
+          return {
+            section_title: section.section_title,
+            items_data: section.items_data.map(item => {
+              return {
+                item_title: item.item_title,
+                description: item.description,
+                details: item.details,
+                tags: item.tags,
+                priority: item.priority,
+              }
+            })
+          }
+        })
+      }
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.json(error.message);
+  }
+}
+
 const getOne = async (req, res) => {
 
   try {
@@ -216,4 +262,14 @@ const deleteList = async (req, res) => {
   }
 };
 
-module.exports = { createCheckList, createCheckListItem, getAll, getOne, update, deleteList, searchFilter, getFive };
+module.exports = {
+  createCheckList,
+  createCheckListItem,
+  getAll,
+  getOne,
+  update,
+  deleteList,
+  searchByAuthor,
+  searchFilter,
+  getFive
+};
