@@ -54,68 +54,112 @@ const createCheckListItem = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-    try {
-        const checkLists = await Checklist.find().populate('author', 'username');
-        const result = checkLists.map(doc => {
-            return {
-                id: doc.id,
-                title: doc.title,
-                author: doc.author,
-                creation_date: doc.creation_date,
-                sections_data: doc.sections_data.map(section => {
-                  return {
-                    section_title: section.section_title,
-                    items_data: section.items_data.map(item => {
-                      return {
-                        item_title: item.item_title,
-                        description: item.description,
-                        details: item.details,
-                        tags: item.tags,
-                        priority: item.priority,
-                    }
-                    })
-                  }
-                })
-            }
-        });
-        
-        res.status(200).json(result);
+  try {
+    const checkLists = await Checklist.find().populate('author', 'username');
+    const result = checkLists.map(doc => {
+      return {
+        id: doc.id,
+        title: doc.title,
+        author: doc.author,
+        creation_date: doc.creation_date,
+        sections_data: doc.sections_data.map(section => {
+          return {
+            section_title: section.section_title,
+            items_data: section.items_data.map(item => {
+              return {
+                item_title: item.item_title,
+                description: item.description,
+                details: item.details,
+                tags: item.tags,
+                priority: item.priority,
+              }
+            })
+          }
+        })
+      }
+    });
 
-    } catch (error) {
-        res.json(error);
-    }
+    res.status(200).json(result);
+
+  } catch (error) {
+    res.json(error);
+  }
 };
 
 const searchFilter = async (req, res) => {
-    try {
-        const search = req.params.filter;
-        const checkLists = await Checklist.find({"title": {$regex : `${search}`, $options: 'i'}}).populate('author', 'username');
-        const result = checkLists.map(doc => {
-                return {
-                    id: doc.id,
-                    title: doc.title,
-                    author: doc.author,
-                    creation_date: doc.creation_date,
-                    sections_data: doc.sections_data.map(section => {
-                      return {
-                        section_title: section.section_title,
-                        items_data: section.items_data.map(item => {
-                          return {
-                            item_title: item.item_title,
-                            description: item.description,
-                            details: item.details,
-                            tags: item.tags,
-                            priority: item.priority,
-                        }
-                        })
-                      }
-                    })
-                }
-        });
-        res.status(200).json(result);
-    } catch (error) {
-        res.json(error);
-    }
+  try {
+    const search = req.params.filter;
+    const checkLists = await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).populate('author', 'username');
+    const result = checkLists.map(doc => {
+      return {
+        id: doc.id,
+        title: doc.title,
+        author: doc.author,
+        creation_date: doc.creation_date,
+        sections_data: doc.sections_data.map(section => {
+          return {
+            section_title: section.section_title,
+            items_data: section.items_data.map(item => {
+              return {
+                item_title: item.item_title,
+                description: item.description,
+                details: item.details,
+                tags: item.tags,
+                priority: item.priority,
+              }
+            })
+          }
+        })
+      }
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    res.json(error);
+  }
+};
+
+const searchByAuthor = async (req, res) => {
+  try {
+    const author = req.params.id;
+    const lists = await Checklist.find({ author });
+
+    const result = lists.map(doc => {
+      return {
+        id: doc.id,
+        title: doc.title,
+        tags: doc.sections_data.map(data => {
+          const tags = [];
+          data.items_data.map(el => {
+            el.tags.map(item => {
+              if (!tags.includes(item)) {
+                tags.push(item);
+              }
+            })
+          });
+          return tags;
+        }),
+        creation_date: doc.creation_date,
+        sections_data: doc.sections_data.map(section => {
+          return {
+            section_title: section.section_title,
+            items_data: section.items_data.map(item => {
+              return {
+                item_title: item.item_title,
+                description: item.description,
+                details: item.details,
+                tags: item.tags,
+                priority: item.priority,
+              }
+            })
+          }
+        })
+      }
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.json(error.message);
+  }
 }
 
 const getOne = async (req, res) => {
@@ -176,4 +220,13 @@ const deleteList = async (req, res) => {
   }
 };
 
-module.exports = { createCheckList, createCheckListItem, getAll, getOne, update, deleteList, searchFilter };
+module.exports = {
+  createCheckList,
+  createCheckListItem,
+  getAll,
+  getOne,
+  update,
+  deleteList,
+  searchByAuthor,
+  searchFilter
+};
