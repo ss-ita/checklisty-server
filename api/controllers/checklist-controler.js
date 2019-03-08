@@ -254,7 +254,7 @@ const deleteList = async (req, res) => {
   try {
     const deletedList = await Checklist.findByIdAndDelete(req.params.id);
     if (deletedList) {
-      res.status(200).json({ message: `Deleted Check List Title: ${deletedList.title}` });
+      res.status(200).json({ message: `Deleted list: ${deletedList.title}` });
     } else res.sendStatus(404);
 
   } catch (error) {
