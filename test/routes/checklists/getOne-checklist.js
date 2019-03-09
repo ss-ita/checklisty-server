@@ -26,17 +26,17 @@ describe('Get checklist by id', () => {
   };
 
   before(() => {
-    sinon.stub(mongoose.Model, 'findById');
+    sinon.stub(mongoose.Model, 'findOne');
     sinon.stub(jwt, 'verify').returns({ decoded: { id: '1' } });
   });
 
   after(() => {
-    mongoose.Model.findById.restore();
+    mongoose.Model.findOne.restore();
     jwt.verify.restore();
   });
 
   it('shoud return checklist and send 200 status', () => {
-    mongoose.Model.findById.returns(checklist);
+    mongoose.Model.findOne.returns(checklist);
 
     chai.request(server)
       .get('/api/checklists/id')
@@ -47,14 +47,14 @@ describe('Get checklist by id', () => {
       });
   });
 
-  // it('should not return checklist and send 404 status', () => {
-  //   mongoose.Model.findById.returns(null);
+  it('should not return checklist and send 404 status', () => {
+    mongoose.Model.findOne.returns(null);
 
-  //   chai.request(server)
-  //     .get('/api/checklists/id')
-  //     .set('access-token', 'token')
-  //     .end((err, res) => {
-  //       res.should.have.status(404);
-  //     });
-  // });
+    chai.request(server)
+      .get('/api/checklists/id')
+      .set('access-token', 'token')
+      .end((err, res) => {
+        res.should.have.status(404);
+      });
+  });
 });
