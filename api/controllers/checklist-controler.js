@@ -4,20 +4,29 @@ const { Checklist, validateChecklist } = require('../models/checklist-model');
 const createCheckList = async (req, res) => {
 
   try {
+    if (Object.keys(req.body).length) {
+      req.body.sections_data.map((section) => {
+        delete section._id;
+        return (
+          section.items_data.map(item => delete item._id)
+        );
+      });
+    }
+
     const { error } = validateChecklist(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message })
     }
 
     const { title, sections_data } = req.body;
-  
-    const newList = new Checklist({ // model, newList.__proto__ = { save: function() {} }
+
+    const newList = new Checklist({
       title,
       author: req.userData.id,
       creation_date: new Date(),
       sections_data
     })
-    
+
     const list = await newList.save()
     res.status(201).json(list);
 
@@ -54,112 +63,112 @@ const createCheckListItem = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-    try {
-        const checkLists = await Checklist.find().populate('author', 'username');
-        const totalItems = await Checklist.count();
-        const result = checkLists.map(doc => {
-            return {
-                id: doc.id,
-                title: doc.title,
-                author: doc.author,
-                slug: doc.slug,
-                creation_date: doc.creation_date,
-                sections_data: doc.sections_data.map(section => {
-                  return {
-                    section_title: section.section_title,
-                    items_data: section.items_data.map(item => {
-                      return {
-                        item_title: item.item_title,
-                        description: item.description,
-                        details: item.details,
-                        tags: item.tags,
-                        priority: item.priority,
-                    }
-                    })
-                  }
-                })
-            }
-        });
-        
-        res.status(200).json({result, totalItems});
+  try {
+    const checkLists = await Checklist.find().populate('author', 'username');
+    const totalItems = await Checklist.count();
+    const result = checkLists.map(doc => {
+      return {
+        id: doc.id,
+        title: doc.title,
+        author: doc.author,
+        slug: doc.slug,
+        creation_date: doc.creation_date,
+        sections_data: doc.sections_data.map(section => {
+          return {
+            section_title: section.section_title,
+            items_data: section.items_data.map(item => {
+              return {
+                item_title: item.item_title,
+                description: item.description,
+                details: item.details,
+                tags: item.tags,
+                priority: item.priority,
+              }
+            })
+          }
+        })
+      }
+    });
 
-    } catch (error) {
-        res.json(error);
-    }
+    res.status(200).json({ result, totalItems });
+
+  } catch (error) {
+    res.json(error);
+  }
 };
 const getFive = async (req, res) => {
   try {
-      const howMuch = (parseInt(req.params.activePage) - 1) * 5;
-      const checkLists = await Checklist.find().sort({ "creation_date": -1}).skip(howMuch).limit(5).populate('author', 'username');
-      const totalItems = Math.ceil(await Checklist.count() / 5);
-      const result = checkLists.map(doc => {
+    const howMuch = (parseInt(req.params.activePage) - 1) * 5;
+    const checkLists = await Checklist.find().sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
+    const totalItems = Math.ceil(await Checklist.count() / 5);
+    const result = checkLists.map(doc => {
+      return {
+        id: doc.id,
+        title: doc.title,
+        author: doc.author,
+        slug: doc.slug,
+        creation_date: doc.creation_date,
+        sections_data: doc.sections_data.map(section => {
           return {
-              id: doc.id,
-              title: doc.title,
-              author: doc.author,
-              slug: doc.slug,
-              creation_date: doc.creation_date,
-              sections_data: doc.sections_data.map(section => {
-                return {
-                  section_title: section.section_title,
-                  items_data: section.items_data.map(item => {
-                    return {
-                      item_title: item.item_title,
-                      description: item.description,
-                      details: item.details,
-                      tags: item.tags,
-                      priority: item.priority,
-                  }
-                  })
-                }
-              })
+            section_title: section.section_title,
+            items_data: section.items_data.map(item => {
+              return {
+                item_title: item.item_title,
+                description: item.description,
+                details: item.details,
+                tags: item.tags,
+                priority: item.priority,
+              }
+            })
           }
-      });
-      
-      res.status(200).json({result, totalItems});
+        })
+      }
+    });
+
+    res.status(200).json({ result, totalItems });
 
   } catch (error) {
-      res.json(error);
+    res.json(error);
   }
 };
 
 const searchFilter = async (req, res) => {
-    try {
-        const search = req.params.filter;
-        let howMuch = (parseInt(req.params.activePage) - 1) * 5;
-        const totalItems = Math.ceil(await Checklist.find({"title": {$regex : `${search}`, $options: 'i'}}).count() / 5);
-        if(howMuch > totalItems){
-          howMuch = totalItems;
-        }
-        const checkLists = await Checklist.find({"title": {$regex : `${search}`, $options: 'i'}}).sort({ "creation_date": -1}).skip(howMuch).limit(5).populate('author', 'username');
-        
-        const result = checkLists.map(doc => {
-                return {
-                    id: doc.id,
-                    title: doc.title,
-                    author: doc.author,
-                    slug: doc.slug,
-                    creation_date: doc.creation_date,
-                    sections_data: doc.sections_data.map(section => {
-                      return {
-                        section_title: section.section_title,
-                        items_data: section.items_data.map(item => {
-                          return {
-                            item_title: item.item_title,
-                            description: item.description,
-                            details: item.details,
-                            tags: item.tags,
-                            priority: item.priority,
-                        }
-                        })
-                      }
-                    })
-                }
-        });
-        res.status(200).json({result, totalItems});
-    } catch (error) {
-        res.json(error);
+  try {
+    const search = req.params.filter;
+    let howMuch = (parseInt(req.params.activePage) - 1) * 5;
+    const totalItems = Math.ceil(await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).count() / 5);
+    if (howMuch > totalItems) {
+      howMuch = totalItems;
     }
+    const checkLists = await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
+
+    const result = checkLists.map(doc => {
+      return {
+        id: doc.id,
+        title: doc.title,
+        author: doc.author,
+        slug: doc.slug,
+        creation_date: doc.creation_date,
+        sections_data: doc.sections_data.map(section => {
+          return {
+            section_title: section.section_title,
+            items_data: section.items_data.map(item => {
+              return {
+                item_title: item.item_title,
+                description: item.description,
+                details: item.details,
+                tags: item.tags,
+                priority: item.priority,
+              }
+            })
+          }
+        })
+      }
+    });
+    res.status(200).json({ result, totalItems });
+  } catch (error) {
+    res.json(error);
+  }
 }
 
 const searchByAuthor = async (req, res) => {
@@ -238,7 +247,7 @@ const update = async (req, res) => {
 
   try {
     const { title, sections_data } = req.body;
-    
+
     const list = await Checklist.findByIdAndUpdate(
       req.params.id,
       { $set: { sections_data, title } },
