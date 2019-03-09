@@ -9,7 +9,7 @@ module.exports = {
     new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: (process.env.BASE_URL || 'http://localhost:3030') + "/api/auth/google/redirect",
+      callbackURL: (process.env.SERVER_URL || 'http://localhost:3030') + "/api/auth/google/redirect",
       userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'
     }, async (accessToken, refreshToken, profile, done) => {
       const currentUser = await User.findOne({ email: profile.emails[0].value });
