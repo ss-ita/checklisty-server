@@ -13,30 +13,30 @@ chai.use(chaiHttp);
 const should = chai.should();
 
 describe('Get checklist by id', () => {
-  const checklist = { 
+  const checklist = {
     title: 'Checklist_title',
-    sections_data: [{ 
+    sections_data: [{
       section_title: 'section_title',
-      items_data: [{ 
+      items_data: [{
         item_title: 'item_title',
         description: 'description',
         priority: 2
       }]
-    }] 
+    }]
   };
 
   before(() => {
-    sinon.stub(mongoose.Model, 'findById');
+    sinon.stub(mongoose.Model, 'findOne');
     sinon.stub(jwt, 'verify').returns({ decoded: { id: '1' } });
   });
-    
+
   after(() => {
-    mongoose.Model.findById.restore();
+    mongoose.Model.findOne.restore();
     jwt.verify.restore();
   });
 
   it('shoud return checklist and send 200 status', () => {
-    mongoose.Model.findById.returns(checklist);
+    mongoose.Model.findOne.returns(checklist);
 
     chai.request(server)
       .get('/api/checklists/id')
@@ -48,7 +48,7 @@ describe('Get checklist by id', () => {
   });
 
   it('should not return checklist and send 404 status', () => {
-    mongoose.Model.findById.returns(null);
+    mongoose.Model.findOne.returns(null);
 
     chai.request(server)
       .get('/api/checklists/id')

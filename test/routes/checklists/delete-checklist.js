@@ -13,16 +13,16 @@ chai.use(chaiHttp);
 const should = chai.should();
 
 describe('Delete checklist by id', () => {
-  const checklist = { 
+  const checklist = {
     title: 'Checklist_title',
-    sections_data: [] 
+    sections_data: []
   };
-  
+
   before(() => {
     sinon.stub(mongoose.Model, 'findByIdAndDelete');
     sinon.stub(jwt, 'verify').returns({ decoded: { id: '1' } });
   });
-  
+
   after(() => {
     mongoose.Model.findByIdAndDelete.restore();
     jwt.verify.restore();
@@ -37,7 +37,7 @@ describe('Delete checklist by id', () => {
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.have.property('message');
-        res.body.message.should.eql(`Deleted Check List Title: ${checklist.title}`);
+        res.body.message.should.eql(`Deleted list: ${checklist.title}`);
       });
   });
 
