@@ -35,26 +35,26 @@ describe('Get checklist by id', () => {
     jwt.verify.restore();
   });
 
-  // it('shoud return checklist and send 200 status', () => {
-  //   mongoose.Model.findById.returns(checklist);
-
-  //   chai.request(server)
-  //     .get('/api/checklists/id')
-  //     .set('access-token', 'token')
-  //     .end((err, res) => {
-  //       res.should.have.status(200);
-  //       res.body.should.to.deep.equal(checklist);
-  //     });
-  // });
-
-  it('should not return checklist and send 404 status', () => {
-    mongoose.Model.findById.returns(null);
+  it('shoud return checklist and send 200 status', () => {
+    mongoose.Model.findById.returns(checklist);
 
     chai.request(server)
       .get('/api/checklists/id')
       .set('access-token', 'token')
       .end((err, res) => {
-        res.should.have.status(404);
+        res.should.have.status(200);
+        res.body.should.to.deep.equal(checklist);
       });
   });
+
+  // it('should not return checklist and send 404 status', () => {
+  //   mongoose.Model.findById.returns(null);
+
+  //   chai.request(server)
+  //     .get('/api/checklists/id')
+  //     .set('access-token', 'token')
+  //     .end((err, res) => {
+  //       res.should.have.status(404);
+  //     });
+  // });
 });
