@@ -24,7 +24,7 @@ describe('Authorisation Validate', () => {
     mongoose.Model.findById.restore();
     jwt.verify.restore();
   });
- 
+
   it('Shold reject validation, token not found', () => {
     chai.request(server)
       .post('/api/auth/validate')
@@ -33,18 +33,6 @@ describe('Authorisation Validate', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message');
         res.body.message.should.eql('Token not found!');
-      });
-  });
-
-  it('Should reject with some error', () => {
-    chai.request(server)
-      .post('/api/auth/signup')
-      .send({ username: 'JonhDoe', email: 'JonhDoe@email.com', password: '123456' })
-      .end((err, res) => {
-        res.should.have.status(500);
-        res.body.should.be.a('object');
-        res.body.should.have.property('message');
-        res.body.message.should.eql('Some error');
       });
   });
 
