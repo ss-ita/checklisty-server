@@ -10,19 +10,19 @@ const createCheckList = async (req, res) => {
     }
 
     const { title, sections_data } = req.body;
-
-    const newList = new Checklist({
+  
+    const newList = new Checklist({ // model, newList.__proto__ = { save: function() {} }
       title,
       author: req.userData.id,
       creation_date: new Date(),
       sections_data
     })
-
+    
     const list = await newList.save()
     res.status(201).json(list);
 
   } catch (error) {
-    res.status(500).json(error);
+    res.status(500).json(error.message);
   }
 };
 
@@ -45,7 +45,7 @@ const createCheckListItem = async (req, res) => {
       priority
     });
 
-    await list.save()
+    await list.save();
     res.status(201).json(list);
 
   } catch (error) {
@@ -238,7 +238,7 @@ const update = async (req, res) => {
 
   try {
     const { title, sections_data } = req.body;
-
+    
     const list = await Checklist.findByIdAndUpdate(
       req.params.id,
       { $set: { sections_data, title } },
