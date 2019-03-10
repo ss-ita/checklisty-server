@@ -13,23 +13,25 @@ chai.use(chaiHttp);
 const should = chai.should();
 
 describe('create checklist', () => {
-  const checklist = { 
+  const checklist = {
     title: 'Checklist_title',
-    sections_data: [{ 
+    sections_data: [{
+      _id: 1,
       section_title: 'section_title',
-      items_data: [{ 
+      items_data: [{
+        _id: 1,
         item_title: 'item_title',
         description: 'description',
         priority: 1
       }]
-    }] 
+    }]
   };
 
   before(() => {
     sinon.stub(mongoose.Model.prototype, 'save').returns(checklist);
     sinon.stub(jwt, 'verify').returns({ decoded: { id: '1' } });
   });
-  
+
   after(() => {
     mongoose.Model.prototype.save.restore();
     jwt.verify.restore();
