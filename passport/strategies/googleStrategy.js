@@ -27,7 +27,7 @@ module.exports = {
               googleId: profile.id,
               username: correctUsername,
               email: profile.emails[0].value,
-              image: profile.photos[0].value.replace("?sz=50", "?sz=500")
+              image: profile.photos[0].value
             }).save().then((newUser) => {
               done(null, newUser);
             });
@@ -43,7 +43,7 @@ module.exports = {
             currentUser.googleId = profile.id;
           }
           if (!currentUser.image) {
-            currentUser.image = profile.photos[0].value.replace("?sz=50", "?sz=500")
+            currentUser.image = profile.photos[0].value;
           }
           currentUser.save();
           done(null, currentUser);
