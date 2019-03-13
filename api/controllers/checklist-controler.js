@@ -98,8 +98,8 @@ const getAll = async (req, res) => {
 };
 const getFive = async (req, res) => {
   try {
-    const howMuch = (parseInt(req.params.activePage) - 1) * 5;
-    const checkLists = await Checklist.find().sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
+    const howMuchToSkip = (parseInt(req.params.activePage) - 1) * 5;
+    const checkLists = await Checklist.find().sort({ "creation_date": -1 }).skip(howMuchToSkip).limit(5).populate('author', 'username');
     const totalItems = Math.ceil(await Checklist.count() / 5);
     const result = checkLists.map(doc => {
       return {
@@ -135,13 +135,12 @@ const getFive = async (req, res) => {
 const searchFilter = async (req, res) => {
   try {
     const search = req.params.filter;
-    let howMuch = (parseInt(req.params.activePage) - 1) * 5;
     const totalItems = Math.ceil(await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).count() / 5);
-    if (howMuch > totalItems) {
-      howMuch = totalItems;
+    if(req.params.activePage > totalItems){
+      req.params.activePage = 1;
     }
-    const checkLists = await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
-
+    let howMuchToSkip = (parseInt(req.params.activePage) - 1) * 5;
+    const checkLists = await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).sort({ "creation_date": -1 }).skip(howMuchToSkip).limit(5).populate('author', 'username');
     const result = checkLists.map(doc => {
       return {
         id: doc.id,
