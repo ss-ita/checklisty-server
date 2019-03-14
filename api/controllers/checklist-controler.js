@@ -257,11 +257,11 @@ const getOne = async (req, res) => {
 const update = async (req, res) => {
 
   try {
-    const { title, sections_data } = req.body;
+    const { title, sections_data, isPrivate } = req.body;
 
     const list = await Checklist.findByIdAndUpdate(
       req.params.id,
-      { $set: { sections_data, title } },
+      { $set: { sections_data, title, isPrivate } },
       { new: true }
     );
 
