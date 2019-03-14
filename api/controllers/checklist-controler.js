@@ -18,11 +18,12 @@ const createCheckList = async (req, res) => {
       return res.status(400).json({ message: error.details[0].message })
     }
 
-    const { title, sections_data } = req.body;
+    const { title, sections_data, isPrivate } = req.body;
 
     const newList = new Checklist({
       title,
       author: req.userData.id,
+      isPrivate,
       creation_date: new Date(),
       sections_data
     })
@@ -64,7 +65,7 @@ const createCheckListItem = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const checkLists = await Checklist.find().populate('author', 'username');
+    const checkLists = await Checklist.find({ $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).populate('author', 'username');
     const totalItems = await Checklist.count();
     const result = checkLists.map(doc => {
       return {
@@ -99,7 +100,7 @@ const getAll = async (req, res) => {
 const getFive = async (req, res) => {
   try {
     const howMuch = (parseInt(req.params.activePage) - 1) * 5;
-    const checkLists = await Checklist.find().sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
+    const checkLists = await Checklist.find({ $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
     const totalItems = Math.ceil(await Checklist.count() / 5);
     const result = checkLists.map(doc => {
       return {
@@ -136,11 +137,17 @@ const searchFilter = async (req, res) => {
   try {
     const search = req.params.filter;
     let howMuch = (parseInt(req.params.activePage) - 1) * 5;
-    const totalItems = Math.ceil(await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).count() / 5);
+    const totalItems = Math.ceil(await Checklist.find(
+      { "title": { $regex: `${search}`, $options: 'i' } },
+      { $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+    ).count() / 5);
     if (howMuch > totalItems) {
       howMuch = totalItems;
     }
-    const checkLists = await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
+    const checkLists = await Checklist.find(
+      { "title": { $regex: `${search}`, $options: 'i' } },
+      { $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+    ).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
 
     const result = checkLists.map(doc => {
       return {
@@ -174,7 +181,7 @@ const searchFilter = async (req, res) => {
 const searchByAuthor = async (req, res) => {
   try {
     const author = req.params.id;
-    const lists = await Checklist.find({ author });
+    const lists = await Checklist.find({ author,$or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]});
 
     const result = lists.map(doc => {
       return {
