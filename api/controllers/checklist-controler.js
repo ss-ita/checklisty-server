@@ -185,7 +185,7 @@ const searchFilter = async (req, res) => {
 const searchByAuthor = async (req, res) => {
   try {
     const author = req.params.id;
-    const lists = await Checklist.find({ author,$or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]});
+    const lists = await Checklist.find({ author });
 
     const result = lists.map(doc => {
       return {
