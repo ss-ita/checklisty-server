@@ -53,13 +53,13 @@ describe('create checklist', () => {
 
   it('should create new checklist if valid data passed', () => {
     chai.request(server)
-        .post('/api/checklists/create')
-        .set('access-token', 'token')
-        .send(checklist)
-        .end((err, res) => {
-          res.should.have.status(201);
-          res.body.should.be.a('object');
-          res.body.should.to.deep.equal(checklist);
-        });
+      .post('/api/checklists/create')
+      .set('access-token', 'token')
+      .send(checklist)
+      .end((err, res) => {
+        res.should.have.status(201);
+        res.body.should.be.a('object');
+        res.body.should.to.deep.equal(checklist);
+      });
   });
 });

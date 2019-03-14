@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
+const Joi = require('joi');
 const slug = require('mongoose-slug-updater');
 const Section = require('./section-model');
-const Joi = require('joi');
 
 const minLength = 1;
 const maxLength = 256;
@@ -12,6 +12,7 @@ mongoose.plugin(slug);
 const checklistSchema = new mongoose.Schema({
   title: { type: String },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  isPrivate: { type: Boolean, default: false },
   slug: { type: String, slug: "title", unique: true, slugPaddingSize: 2 },
   creation_date: { type: Date, default: Date.now() },
   sections_data: [Section.sectionSchema]
@@ -26,6 +27,7 @@ const validateChecklist = (checklist) => {
       .max(maxLength)
       .required()
       .label('Checklist title'),
+    isPrivate: Joi.boolean(),
     sections_data: Joi.array()
       .items(
         Joi.object({
