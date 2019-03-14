@@ -65,8 +65,10 @@ const createCheckListItem = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const checkLists = await Checklist.find({ $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).populate('author', 'username');
-    const totalItems = await Checklist.count();
+    const checkLists = await Checklist.find(
+      { $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+    ).populate('author', 'username');
+    const totalItems = await Checklist.count({$or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]});
     const result = checkLists.map(doc => {
       return {
         id: doc.id,
@@ -100,7 +102,9 @@ const getAll = async (req, res) => {
 const getFive = async (req, res) => {
   try {
     const howMuch = (parseInt(req.params.activePage) - 1) * 5;
-    const checkLists = await Checklist.find({ $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
+    const checkLists = await Checklist.find(
+      { $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+    ).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
     const totalItems = Math.ceil(await Checklist.count() / 5);
     const result = checkLists.map(doc => {
       return {
@@ -138,15 +142,15 @@ const searchFilter = async (req, res) => {
     const search = req.params.filter;
     let howMuch = (parseInt(req.params.activePage) - 1) * 5;
     const totalItems = Math.ceil(await Checklist.find(
-      { "title": { $regex: `${search}`, $options: 'i' } },
-      { $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+      { "title": { $regex: `${search}`, $options: 'i' },
+        $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
     ).count() / 5);
     if (howMuch > totalItems) {
       howMuch = totalItems;
     }
     const checkLists = await Checklist.find(
-      { "title": { $regex: `${search}`, $options: 'i' } },
-      { $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+      { "title": { $regex: `${search}`, $options: 'i' },
+        $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
     ).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
 
     const result = checkLists.map(doc => {
