@@ -97,10 +97,24 @@ const getAll = async (req, res) => {
   }
 };
 const getFive = async (req, res) => {
-  try {
-    const howMuch = (parseInt(req.params.activePage) - 1) * 5;
-    const checkLists = await Checklist.find().sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
-    const totalItems = Math.ceil(await Checklist.count() / 5);
+  try { 
+    const limitItemsInPage = parseInt(req.params.itemsInPage);
+    const searchValue = req.params.searchValue;
+    let howItemsSkip = (parseInt(req.params.activePage) - 1) * limitItemsInPage;
+    let checkLists = null;
+    let totalItems = null;
+    if(searchValue === 'undefined'){
+      totalItems = await Checklist.count();
+      if (req.params.activePage > totalItems) {
+        howItemsSkip = 0;
+      }
+      checkLists = await Checklist.find().sort({ "creation_date": -1 }).skip(howItemsSkip).limit(limitItemsInPage).populate('author', 'username');
+    }
+    else {
+      howItemsSkip = 0;
+      totalItems = Math.ceil(await Checklist.find({ "title": { $regex: `${searchValue}`, $options: 'i' } }).count());
+      checkLists = await Checklist.find({ "title": { $regex: `${searchValue}`, $options: 'i' } }).sort({ "creation_date": -1 }).skip(howItemsSkip).limit(limitItemsInPage).populate('author', 'username');
+    }
     const result = checkLists.map(doc => {
       return {
         id: doc.id,
@@ -125,51 +139,12 @@ const getFive = async (req, res) => {
       }
     });
 
-    res.status(200).json({ result, totalItems });
+    res.status(200).json({result, totalItems});
 
   } catch (error) {
     res.json(error);
   }
 };
-
-const searchFilter = async (req, res) => {
-  try {
-    const search = req.params.filter;
-    let howMuch = (parseInt(req.params.activePage) - 1) * 5;
-    const totalItems = Math.ceil(await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).count() / 5);
-    if (howMuch > totalItems) {
-      howMuch = totalItems;
-    }
-    const checkLists = await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' } }).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
-
-    const result = checkLists.map(doc => {
-      return {
-        id: doc.id,
-        title: doc.title,
-        author: doc.author,
-        slug: doc.slug,
-        creation_date: doc.creation_date,
-        sections_data: doc.sections_data.map(section => {
-          return {
-            section_title: section.section_title,
-            items_data: section.items_data.map(item => {
-              return {
-                item_title: item.item_title,
-                description: item.description,
-                details: item.details,
-                tags: item.tags,
-                priority: item.priority,
-              }
-            })
-          }
-        })
-      }
-    });
-    res.status(200).json({ result, totalItems });
-  } catch (error) {
-    res.json(error);
-  }
-}
 
 const searchByAuthor = async (req, res) => {
   try {
@@ -283,6 +258,5 @@ module.exports = {
   update,
   deleteList,
   searchByAuthor,
-  searchFilter,
   getFive
 };
