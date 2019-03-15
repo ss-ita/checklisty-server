@@ -8,6 +8,7 @@ const updateProfile = async (req, res) => {
     const userParams = { username: req.body.username, email: req.body.email };
         
     if(!userParams.username && !userParams.email) return res.status(409).json({message: "Please fill the form!"});
+    
     const { error } = validate(req.body);
     if (error) return res.status(400).json({message: error.details[0].message});
     if (user.username === req.body.username) delete userParams.username;
