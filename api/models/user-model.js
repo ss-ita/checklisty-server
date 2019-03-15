@@ -7,38 +7,47 @@ const minLength = 6;
 const maxLength = 50;
 
 const userSchema = new mongoose.Schema({
-    username: {
-      type: String, 
-      required: true,
-      maxlength: maxLength,
-      unique: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-    },
-    googleId: {
-      type: String
-    },
-    facebookId: {
-      type: String
-    },
-    githubId: {
-      type: String
-    },
-    team: {
-      type: String
-    },
-    location: {
-      type: String
-    },
-    image: {
-      type: String
-    }
+  username: {
+    type: String, 
+    required: true,
+    maxlength: maxLength,
+    unique: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+  },
+  googleId: {
+    type: String
+  },
+  facebookId: {
+    type: String
+  },
+  githubId: {
+    type: String
+  },
+  team: {
+    type: String
+  },
+  location: {
+    type: String
+  },
+  image: {
+    type: String
+  },
+  role: {
+    type: String,
+    enum: ['admin', 'moderator', 'user'],
+    default: 'user',
+  },
+  isBanned: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 userSchema.plugin(uniqueValidator);

@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { User } = require('../models/user-model');
-const emailGenerate = require('./email-generator')
+const { forgotPasswordEmail } = require('./email-generator');
 
 const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 
@@ -33,7 +33,7 @@ const forgotPassword = async (req, res) => {
       to: email,
       from: 'lv379nodejs@gmail.com',
       subject: 'Password reset for Checklisty',
-      html: emailGenerate(user.username, resetPasswordURL)
+      html: forgotPasswordEmail(user.username, resetPasswordURL)
     };
 
     await smtpTransport.sendMail(mailOptions, () => {
