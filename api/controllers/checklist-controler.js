@@ -1,5 +1,6 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
 const { Checklist, validateChecklist } = require('../models/checklist-model');
+const userChecklists = require('../models/users-checklists');
 
 const createCheckList = async (req, res) => {
 
@@ -287,6 +288,41 @@ const update = async (req, res) => {
   }
 };
 
+const createUserChecklistCollection = async (req, res) => {
+  try {
+    const { userID, checklistID, checkboxes_data } = req.body;
+
+    const result = await userChecklists.findOne({ userID: userID, checklistID: checklistID });
+
+    if (result) {
+      return res.status(200).json(result);
+    } else {
+      const usersChecklists = await new userChecklists({
+        userID: userID,
+        checklistID: checklistID,
+        checkboxes_data: checkboxes_data
+      }).save();
+      return res.json(usersChecklists);
+    }
+  }
+  catch (error) {
+    res.status(500);
+  }
+}
+
+const setCheckboxesData = async (req, res) => {
+  try {
+    const { id, checkboxArray } = req.body;
+    
+    await userChecklists.findByIdAndUpdate(id, { $set: { checkboxes_data: checkboxArray } });
+
+    return res.status(200).json({ message: "Setted" })
+  }
+  catch (error) {
+    return res.status(500);
+  }
+}
+
 const deleteList = async (req, res) => {
   try {
     const deletedList = await Checklist.findByIdAndDelete(req.params.id);
@@ -295,7 +331,7 @@ const deleteList = async (req, res) => {
     } else res.sendStatus(404);
 
   } catch (error) {
-    res.sendStatus(404);
+    res.json(error);
   }
 };
 
@@ -307,6 +343,8 @@ module.exports = {
   update,
   deleteList,
   searchByAuthor,
+  searchFilter,
   getFive,
-  searchFilter
+  setCheckboxesData,
+  createUserChecklistCollection
 };
