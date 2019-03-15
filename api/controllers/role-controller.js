@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const { User } = require('../models/user-model');
 const { Checklist } = require('../models/checklist-model');
+const userCheckList = require('../models/users-checklists');
 const { bannedOrDeletedEmail } = require('./email-generator');
 
 const banUser = async (req, res) => {
@@ -104,6 +105,8 @@ const deleteCheckList = async (req, res) => {
 
     const deletedCheckList = await Checklist.findByIdAndDelete(checkListId, { runValidators: true, context: 'query' });
     const authorOfDeletedCheckList = await User.findById(deletedCheckList.author);
+    
+    await userCheckList.findOneAndDelete({ 'checklistID': checkListId });
 
     const smtpTransport = nodemailer.createTransport({
       service: 'gmail',
