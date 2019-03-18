@@ -1,8 +1,9 @@
 const express = require('express');
+const passport = require('passport');
 const authController = require('../controllers/auth-controller');
 const forgotPasswordController = require('../controllers/forgot-password-controller');
+
 const router = new express.Router();
-const passport = require('passport');
 
 const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 
