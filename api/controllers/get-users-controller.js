@@ -2,7 +2,7 @@ const { User } = require('../models/user-model');
 
 const getUsers = async (req, res) => {
   try {
-    const { itemsonpage, currentpage, sortquery } = req.headers;
+    const { itemsonpage = 5, currentpage = 1, sortquery = 'username' } = req.headers;
     const usersPerPage = await User.find().sort({ [sortquery]: -1 }).skip(Number(itemsonpage) * ( currentpage - 1 )).limit(Number(itemsonpage));
     const totalPages = Math.ceil(await User.count() / itemsonpage);
 

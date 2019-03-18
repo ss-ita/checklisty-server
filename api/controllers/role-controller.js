@@ -1,7 +1,7 @@
-const nodemailer = require('nodemailer');
+const userCheckList = require('../models/users-checklists');
+const sendEmail = require('../controllers/send-email');
 const { User } = require('../models/user-model');
 const { Checklist } = require('../models/checklist-model');
-const userCheckList = require('../models/users-checklists');
 const { bannedOrDeletedEmail } = require('./email-generator');
 
 const banUser = async (req, res) => {
@@ -14,22 +14,8 @@ const banUser = async (req, res) => {
       { runValidators: true, context: 'query', new: true }
     );
 
-    const smtpTransport = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.USER_EMAIL,
-        pass: process.env.USER_PASSWORD
-      }
-    });
-      
-    const mailOptions = {
-      to: bannedUser.email,
-      from: 'lv379nodejs@gmail.com',
-      subject: 'User was banned!',
-      html: bannedOrDeletedEmail(bannedUser.username, 'you', 'banned')
-    };
-      
-    smtpTransport.sendMail(mailOptions);
+    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: bannedUser.email, subjectOption: 'Your was banned!',
+      username: bannedUser.username, userOrList: 'you', bannedOrDeleted: 'banned' });
 
     return res.status(200).json({ message: 'User is successfuly banned!'});
   } catch (err) {
@@ -47,22 +33,8 @@ const unbanUser = async (req, res) => {
       { runValidators: true, context: 'query', new: true }
     );
 
-    const smtpTransport = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.USER_EMAIL,
-        pass: process.env.USER_PASSWORD
-      }
-    });
-        
-    const mailOptions = {
-      to: unbannedUser.email,
-      from: 'lv379nodejs@gmail.com',
-      subject: 'User was unbanned!',
-      html: bannedOrDeletedEmail(unbannedUser.username, 'you', `unbanned by administration`)
-    };
-        
-    smtpTransport.sendMail(mailOptions);
+    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: unbannedUser.email, subjectOption: 'Your was unbanned!',
+      username: unbannedUser.username, userOrList: 'you', bannedOrDeleted: 'unbanned' });
 
     return res.status(200).json({ message: 'User is successfuly unbanned!'});
   } catch (err) {
@@ -76,22 +48,8 @@ const deleteUser = async (req, res) => {
 
     const deletedUser = await User.findByIdAndDelete(operatedUserId, { runValidators: true, context: 'query' });
 
-    const smtpTransport = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.USER_EMAIL,
-        pass: process.env.USER_PASSWORD
-      }
-    });
-        
-    const mailOptions = {
-      to: deletedUser.email,
-      from: 'lv379nodejs@gmail.com',
-      subject: 'User was deleted!',
-      html: bannedOrDeletedEmail(deletedUser.username, 'You', `deleted by administration`)
-    };
-        
-    smtpTransport.sendMail(mailOptions);
+    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: deletedUser.email, subjectOption: 'Your was deleted!',
+      username: deletedUser.username, userOrList: 'you', bannedOrDeleted: 'deleted' });
 
     return res.status(200).json({ message: 'User successfuly deleted!'});
   } catch (err) {
@@ -108,22 +66,8 @@ const deleteCheckList = async (req, res) => {
     
     await userCheckList.findOneAndDelete({ 'checklistID': checkListId });
 
-    const smtpTransport = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.USER_EMAIL,
-        pass: process.env.USER_PASSWORD
-      }
-    });
-
-    const mailOptions = {
-      to: authorOfDeletedCheckList.email,
-      from: 'lv379nodejs@gmail.com',
-      subject: 'CheckList was deleted!',
-      html: bannedOrDeletedEmail(authorOfDeletedCheckList.username, `checklist ${deletedCheckList.title}`, `deleted by administration`)
-    };
-        
-    smtpTransport.sendMail(mailOptions);
+    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: authorOfDeletedCheckList.email, subjectOption: 'Your checklist was deleted!',
+      username: authorOfDeletedCheckList.username, userOrList: `checklist ${deletedCheckList.title}`, bannedOrDeleted: 'deleted' });
 
     return res.status(200).json({ message: 'Check list successfuly deleted!'});
   } catch (err) {

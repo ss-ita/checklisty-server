@@ -1,4 +1,5 @@
-const forgotPasswordEmail = (username, resetPasswordURL) => {
+const forgotPasswordEmail = (emailData) => {
+  const { username, resetPasswordURL } = emailData;
   return (
     `<div>
         <h1>Hello, ${username}!</h1>
@@ -23,15 +24,18 @@ const forgotPasswordEmail = (username, resetPasswordURL) => {
     </div>`
   )
 }
-const bannedOrDeletedEmail = (username, userOrList, bannedOrDeleted) => (
-  `<div>
-  <h1>Hello, ${username}!</h1>
-  <hr />
-  <h3>You are receiving this because you have violated the rules of our service.</h3>
-  <h3>Thus ${userOrList} was ${bannedOrDeleted}.\n\n </h3>
-  <hr />
-  <h4>With best regards, aministartion of Checklisty.\n</h4>
-</div>`
-);
+const bannedOrDeletedEmail = (emailData) => {
+  const { username, userOrList, bannedOrDeleted } = emailData;
+  return (
+    `<div>
+      <h1>Hello, ${username}!</h1>
+      <hr />
+      <h3>You are receiving this because you have violated the rules of our service.</h3>
+      <h3>Thus ${userOrList} was ${bannedOrDeleted}.\n\n </h3>
+      <hr />
+      <h4>With best regards, administartion of Checklisty.\n</h4>
+     </div>`
+  )
+};
 
 module.exports = { forgotPasswordEmail, bannedOrDeletedEmail };

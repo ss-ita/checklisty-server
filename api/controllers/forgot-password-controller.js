@@ -1,6 +1,6 @@
-const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const sendEmail = require('../controllers/send-email');
 const { User } = require('../models/user-model');
 const { forgotPasswordEmail } = require('./email-generator');
 
@@ -22,24 +22,10 @@ const forgotPassword = async (req, res) => {
 
     const resetPasswordURL = `${baseURL}/auth/reset-password/?recovery-token=${token}`;
 
-    const smtpTransport = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.USER_EMAIL,
-        pass: process.env.USER_PASSWORD
-      }
-    });
+    sendEmail({ emailGenerator: forgotPasswordEmail, userEmail: email, subjectOption: 'Password reset for Checklisty',
+      username: user.username, resetPasswordURL });
 
-    const mailOptions = {
-      to: email,
-      from: 'lv379nodejs@gmail.com',
-      subject: 'Password reset for Checklisty',
-      html: forgotPasswordEmail(user.username, resetPasswordURL)
-    };
-
-    await smtpTransport.sendMail(mailOptions, () => {
-      return res.status(200).send('Email has been sent with further instructions');
-    });
+    return res.status(200).send('Email has been sent with further instructions');
 
   } catch (err) {
     res.status(500).json(err);

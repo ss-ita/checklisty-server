@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { User } = require('../models/user-model');
 
 module.exports = async (req, res, next) => {
   try {
@@ -6,6 +7,10 @@ module.exports = async (req, res, next) => {
 
       const decoded = await jwt.verify(req.headers['access-token'], process.env.JWT_KEY);
       req.userData = decoded;
+
+      const user = await User.findById(decoded.id);
+
+      if (user.isBanned) return res.status(403).json({ message: 'You are blocked!' });
 
       return next();
     } else return res.status(401).json({ message: 'Access token is absent!' });
