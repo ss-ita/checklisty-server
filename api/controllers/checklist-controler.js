@@ -117,7 +117,7 @@ const getFive = async (req, res) => {
     }
     else {
       howItemsSkip = 0;
-      totalItems = Math.ceil(await Checklist.find({ "title": { $regex: `${searchValue}`, $options: 'i' } }, { $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).count());
+      totalItems = Math.ceil(await Checklist.find({ "title": { $regex: `${searchValue}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).count());
       checkLists = await Checklist.find({  "title": { $regex: `${searchValue}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).sort({ "creation_date": -1 }).skip(howItemsSkip).limit(limitItemsInPage).populate('author', 'username');
     }
     const result = checkLists.map(doc => {
