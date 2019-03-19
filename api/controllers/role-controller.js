@@ -11,13 +11,13 @@ const banUser = async (req, res) => {
     const bannedUser = await User.findByIdAndUpdate(
       operatedUserId,
       { $set: { isBanned: true } },
-      { runValidators: true, context: 'query', new: true }
+      { new: true }
     );
 
-    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: bannedUser.email, subjectOption: 'Your was banned!',
+    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: bannedUser.email, subjectOption: 'You was blocked!',
       username: bannedUser.username, userOrList: 'you', bannedOrDeleted: 'banned' });
 
-    return res.status(200).json({ message: 'User is successfuly banned!'});
+    return res.status(200).json({ message: 'User is successfuly blocked!'});
   } catch (err) {
     return res.status(500).json(err.message);
   }
@@ -30,13 +30,13 @@ const unbanUser = async (req, res) => {
     const unbannedUser = await User.findByIdAndUpdate(
       operatedUserId,
       { $set: { isBanned: false } },
-      { runValidators: true, context: 'query', new: true }
+      { new: true }
     );
 
-    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: unbannedUser.email, subjectOption: 'Your was unbanned!',
-      username: unbannedUser.username, userOrList: 'you', bannedOrDeleted: 'unbanned' });
+    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: unbannedUser.email, subjectOption: 'You was unblocked!',
+      username: unbannedUser.username, userOrList: 'you', bannedOrDeleted: 'unblocked' });
 
-    return res.status(200).json({ message: 'User is successfuly unbanned!'});
+    return res.status(200).json({ message: 'User is successfuly unblocked!'});
   } catch (err) {
     return res.status(500).json(err.message);
   }
@@ -46,9 +46,9 @@ const deleteUser = async (req, res) => {
   try {
     const { operatedUserId } = req.body;
 
-    const deletedUser = await User.findByIdAndDelete(operatedUserId, { runValidators: true, context: 'query' });
+    const deletedUser = await User.findByIdAndDelete(operatedUserId);
 
-    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: deletedUser.email, subjectOption: 'Your was deleted!',
+    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: deletedUser.email, subjectOption: 'You was deleted!',
       username: deletedUser.username, userOrList: 'you', bannedOrDeleted: 'deleted' });
 
     return res.status(200).json({ message: 'User successfuly deleted!'});
@@ -61,7 +61,7 @@ const deleteCheckList = async (req, res) => {
   try {
     const { checkListId } = req.body;
 
-    const deletedCheckList = await Checklist.findByIdAndDelete(checkListId, { runValidators: true, context: 'query' });
+    const deletedCheckList = await Checklist.findByIdAndDelete(checkListId);
     const authorOfDeletedCheckList = await User.findById(deletedCheckList.author);
     
     await userCheckList.findOneAndDelete({ 'checklistID': checkListId });
@@ -77,14 +77,13 @@ const deleteCheckList = async (req, res) => {
 
 const giveModeratorRights = async (req, res) => {
   try {
-    if (req.userData.operatedUserBanStatus) return res.status(200).json( { message: 'You can not give moderator rights to banned user!'});
+    if (req.userData.operatedUserBanStatus) return res.status(200).json( { message: 'You can not give moderator rights to blocked user!'});
 
     const { operatedUserId } =  req.body;
 
     await User.findByIdAndUpdate(
       operatedUserId,
-      { $set: { role: 'moderator' } },
-      { runValidators: true, context: 'query' }
+      { $set: { role: 'moderator' } }
     );
 
     return res.status(200).json('Moderator rights was given!');
@@ -96,17 +95,16 @@ const giveModeratorRights = async (req, res) => {
 
 const takeBackModeratorRights = async (req, res) => {
   try {
-    if (req.userData.operatedUserBanStatus) return res.status(200).json( { message: 'You can not take back moderator rights to banned user!'});
+    if (req.userData.operatedUserBanStatus) return res.status(200).json( { message: 'You can not take back moderator rights to blocked user!'});
 
     const { operatedUserId } =  req.body;
 
     await User.findByIdAndUpdate(
       operatedUserId,
-      { $set: { role: 'user' } },
-      { runValidators: true, context: 'query' }
+      { $set: { role: 'user' } }
     );
 
-    return res.status(200).json('Moderator rights was given!');
+    return res.status(200).json('Moderator rights was taken back!');
         
   } catch (err) {
     return res.status(500).json(err.message);

@@ -1,5 +1,5 @@
 module.exports = (req, res, next) => {
-  try{
+  try {
     const { operatingUserRole, operatedUserRole } = req.userData;
 
     if (operatingUserRole === 'admin' && operatedUserRole !== 'admin') return next();
