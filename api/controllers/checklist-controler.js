@@ -1,6 +1,7 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
 const { Checklist, validateChecklist } = require('../models/checklist-model');
-const userChecklists = require('../models/users-checklists')
+const userChecklists = require('../models/users-checklists');
+
 const createCheckList = async (req, res) => {
 
   try {
@@ -236,6 +237,7 @@ const getOne = async (req, res) => {
     const result = {
       id: list.id,
       title: list.title,
+      isPrivate: list.isPrivate,
       author: list.author,
       slug: list.slug,
       creation_date: list.creation_date,
@@ -259,8 +261,17 @@ const update = async (req, res) => {
   try {
     const { title, sections_data, isPrivate } = req.body;
 
-    const list = await Checklist.findByIdAndUpdate(
-      req.params.id,
+    if (Object.keys(req.body).length) {
+      req.body.sections_data.map((section) => {
+        delete section._id;
+        return (
+          section.items_data.map(item => delete item._id)
+        );
+      });
+    }
+
+    const list = await Checklist.findOneAndUpdate(
+      { slug: req.params.id },
       { $set: { sections_data, title, isPrivate } },
       { new: true }
     );
@@ -270,7 +281,7 @@ const update = async (req, res) => {
     res.status(200).json({ message: 'List updated', list: list });
 
   } catch (error) {
-    res.json(error);
+    res.status(500).json(error);
   }
 };
 
