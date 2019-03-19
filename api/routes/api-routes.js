@@ -11,6 +11,6 @@ const router = new express.Router();
 router.use('/auth', authRouter);
 router.use('/checklists', checkListRouter);
 router.use('/profile', authCheck, profileRouter);
-router.use('/admin-tools', authCheck, roleCheck, roleRoutes);
+router.use('/admin', authCheck, roleCheck, roleRoutes);
 
 module.exports = router;
