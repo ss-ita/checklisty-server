@@ -1,5 +1,6 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
 const { Checklist, validateChecklist } = require('../models/checklist-model');
+const { User } = require('../models/user-model');
 const userChecklists = require('../models/users-checklists');
 
 const createCheckList = async (req, res) => {
@@ -322,6 +323,11 @@ const setCheckboxesData = async (req, res) => {
 
 const deleteList = async (req, res) => {
   try {
+    const checkListCheck = await Checklist.findById(req.params.id);
+    const operatingUser = await User.findById(req.userData.id);
+    if ( checkListCheck.author !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator')) {
+      return res.status(403).json({ message: 'Access denied!' });
+    }
     const deletedList = await Checklist.findByIdAndDelete(req.params.id);
     if (deletedList) {
       res.status(200).json({ message: `Deleted list: ${deletedList.title}` });

@@ -1,6 +1,6 @@
 const sendEmail = require('../utils/send-email');
 const { User } = require('../models/user-model');
-const { bannedOrDeletedEmail } = require('../utils/email-generator');
+const { blockedOrDeletedEmail } = require('../utils/email-generator');
 
 const statusChange = async (req, res) => {
   try {
@@ -9,22 +9,22 @@ const statusChange = async (req, res) => {
 
     const statusChangedUser = await User.findByIdAndUpdate(
       operatedUserId,
-      { $set: { isBanned: userStatus === 'blocked' ? true : false } },
+      { $set: { isBlocked: userStatus === 'blocked' ? true : false } },
       { new: true }
     );
 
-    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: statusChangedUser.email, subjectOption: `You was ${userStatus}!`,
-      username: statusChangedUser.username, userOrList: 'you', bannedOrDeleted: userStatus });
+    sendEmail({ emailGenerator: blockedOrDeletedEmail, userEmail: statusChangedUser.email, subjectOption: `You was ${userStatus}!`,
+      username: statusChangedUser.username, userOrList: 'you', blockedOrDeleted: userStatus });
 
-    return res.status(200).json({ message: `User is successfuly ${userStatus}!`});
+    return res.status(200).json({ message: `User is successfuly ${statusChangedUser.isBlocked}!`});
   } catch (err) {
-    return res.status(500).json(err.message);
+    return res.status(500);
   }
 }
 
 const roleChange = async (req, res) => {
   try {
-    if (req.userData.operatedUserBanStatus) return res.status(200).json( { message: 'You can not give moderator rights to blocked user!'});
+    if (req.userData.operatedUserBlockStatus) return res.status(403).json( { message: 'You can not give moderator rights to blocked user!'});
 
     const { operatingUserRole, operatedUserRole } = req.userData;
 
@@ -33,15 +33,15 @@ const roleChange = async (req, res) => {
     const { id: operatedUserId } =  req.params;
     const { userRole = 'user' } = req.query;
 
-    await User.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
       operatedUserId,
-      { $set: { role: userRole === 'user' ? userRole : 'moderator' } }
+      { $set: { role: userRole === 'user' ? userRole : 'moderator' } },
+      { new: true } 
     );
 
-    return res.status(200).json('Moderator rights was given!');
-
+    return res.status(200).json(`User role was changed to ${updatedUser.role}!`);
   } catch (err) {
-    return res.status(500).json(err.message);
+    return res.status(500);
   }
 }
 
@@ -74,10 +74,9 @@ const getUsers = async (req, res) => {
       { [searchQuery]: { $regex: `${search}`, $options: 'i' } }
     ).collation({ locale: 'en'}).select('-password').sort({ [sortQuery]: order }).skip(Number(perPage) * ( page - 1 )).limit(Number(perPage));
 
-    return res.status(200).json({ usersPerPage, totalPages });
-        
+    return res.status(200).json({ usersPerPage, totalPages }); 
   } catch (err) {
-    return res.status(500).json(err.message);
+    return res.status(500);
   }
 }
 
@@ -87,12 +86,12 @@ const deleteUser = async (req, res) => {
 
     const deletedUser = await User.findByIdAndDelete(operatedUserId);
 
-    sendEmail({ emailGenerator: bannedOrDeletedEmail, userEmail: deletedUser.email, subjectOption: 'You was deleted!',
-      username: deletedUser.username, userOrList: 'you', bannedOrDeleted: 'deleted' });
+    sendEmail({ emailGenerator: blockedOrDeletedEmail, userEmail: deletedUser.email, subjectOption: 'You was deleted!',
+      username: deletedUser.username, userOrList: 'you', blockedOrDeleted: 'deleted' });
 
     return res.status(200).json({ message: 'User successfuly deleted!'});
   } catch (err) {
-    return res.status(500).json(err.message);
+    return res.status(500);
   }
 }
 

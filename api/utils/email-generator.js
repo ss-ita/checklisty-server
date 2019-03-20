@@ -24,18 +24,18 @@ const forgotPasswordEmail = (emailData) => {
     </div>`
   )
 }
-const bannedOrDeletedEmail = (emailData) => {
-  const { username, userOrList, bannedOrDeleted } = emailData;
+const blockedOrDeletedEmail = (emailData) => {
+  const { username, userOrList, blockedOrDeleted } = emailData;
   return (
     `<div>
       <h1>Hello, ${username}!</h1>
       <hr />
       <h3>You are receiving this because you have violated the rules of our service.</h3>
-      <h3>Thus ${userOrList} was ${bannedOrDeleted}.\n\n </h3>
+      <h3>Thus ${userOrList} was ${blockedOrDeleted}.\n\n </h3>
       <hr />
       <h4>With best regards, administartion of Checklisty.\n</h4>
      </div>`
   )
 };
 
-module.exports = { forgotPasswordEmail, bannedOrDeletedEmail };
+module.exports = { forgotPasswordEmail, blockedOrDeletedEmail };

@@ -22,10 +22,9 @@ const updateProfile = async (req, res) => {
     ).select('-password');
         
     return res.status(200).json({ updatedUser, message: 'Name and email changed!' });
-
   } catch (err) {
     if (err.name === 'ValidationError') return res.status(409).json(err);
-    else return res.status(500).json(err);
+    else return res.status(500);
   }
 }
 
@@ -51,9 +50,8 @@ const updateUserPassword = async (req, res) => {
     await User.findByIdAndUpdate(userId, { $set: { password: setNewPassword } });
 
     return res.status(200).json({ message: 'Password changed!' });
-
   } catch (err) {
-    return res.status(500).json(err);
+    return res.status(500);
   }
 }
 

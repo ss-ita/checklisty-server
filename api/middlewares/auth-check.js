@@ -10,11 +10,11 @@ module.exports = async (req, res, next) => {
 
       const user = await User.findById(decoded.id);
 
-      if (user.isBanned) return res.status(403).json({ message: 'You are blocked!' });
+      if (user.isBlocked) return res.status(403).json({ message: 'You are blocked!' });
 
       return next();
     } else return res.status(401).json({ message: 'Access token is absent!' });
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(500);
   }
 }

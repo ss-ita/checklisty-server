@@ -1,6 +1,6 @@
 module.exports = async (req, res, next) => {
   try{
-    if (!req.body.operatedUserId) return res.status(403).json({ message: 'Access denied' });
+    if (!req.params.id) return res.status(403).json({ message: 'Access denied' });
 
     const { operatingUserRole, operatedUserRole } = req.userData;
 
@@ -9,6 +9,6 @@ module.exports = async (req, res, next) => {
 
     return next();
   } catch (err) {
-    return res.status(500).json(err.message);
+    return res.status(500);
   }
 }

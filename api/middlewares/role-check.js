@@ -14,13 +14,13 @@ module.exports = async (req, res, next) => {
       if (!operatedUser) return next();
 
       req.userData.operatedUserRole = operatedUser.role;
-      req.userData.operatedUserBanStatus = operatedUser.isBanned;
+      req.userData.operatedUserBlockStatus = operatedUser.isBlocked;
     }
     req.userData.operatingUserRole = operatingUser.role;
 
     return next();
 
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return res.status(500);
   }
 }

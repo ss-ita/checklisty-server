@@ -44,7 +44,7 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'moderator', 'user'],
     default: 'user',
   },
-  isBanned: {
+  isBlocked: {
     type: Boolean,
     default: false,
   },
