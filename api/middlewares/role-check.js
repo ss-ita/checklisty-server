@@ -5,11 +5,14 @@ module.exports = async (req, res, next) => {
     const operatingUser = await User.findById(req.userData.id);
 
     if (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator') {
-      return res.status(400).json({ message: 'Access denied!'});
+      return res.status(403).json({ message: 'Access denied!'});
     }
 
-    if (req.body.operatedUserId) { 
-      const operatedUser = await User.findById(req.body.operatedUserId);
+    if (req.params.id) { 
+      const operatedUser = await User.findById(req.params.id);
+      
+      if (!operatedUser) return next();
+
       req.userData.operatedUserRole = operatedUser.role;
       req.userData.operatedUserBanStatus = operatedUser.isBanned;
     }
@@ -18,6 +21,6 @@ module.exports = async (req, res, next) => {
     return next();
 
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 }

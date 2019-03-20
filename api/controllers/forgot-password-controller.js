@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const sendEmail = require('../controllers/send-email');
+const sendEmail = require('../utils/send-email');
 const { User } = require('../models/user-model');
-const { forgotPasswordEmail } = require('./email-generator');
+const { forgotPasswordEmail } = require('../utils/email-generator');
 
 const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 
@@ -16,7 +16,7 @@ const forgotPassword = async (req, res) => {
 
     if (!user) return res.status(400).json({ message: 'User with this email doesn\'t exists.' });
     if (!user.password) return res.status(400).json({ message: 'This user has no password. Try to sign in with social which you have used for registration' })
-    if (user.isBanned) return res.status(403).json({ message: 'You can not reset your password because you are banned!' });
+    if (user.isBanned) return res.status(403).json({ message: 'You can not reset your password because you are blocked!' });
 
     const token = user.generateAuthToken('10m');
 
