@@ -67,9 +67,9 @@ const createCheckListItem = async (req, res) => {
 const getAll = async (req, res) => {
   try {
     const checkLists = await Checklist.find(
-      { $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+      { $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] }
     ).populate('author', 'username');
-    const totalItems = await Checklist.count({$or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]});
+    const totalItems = await Checklist.count({ $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] });
     const result = checkLists.map(doc => {
       return {
         id: doc.id,
@@ -104,7 +104,7 @@ const getFive = async (req, res) => {
   try {
     const howMuch = (parseInt(req.params.activePage) - 1) * 5;
     const checkLists = await Checklist.find(
-      { $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+      { $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] }
     ).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
     const totalItems = Math.ceil(await Checklist.count() / 5);
     const result = checkLists.map(doc => {
@@ -143,15 +143,19 @@ const searchFilter = async (req, res) => {
     const search = req.params.filter;
     let howMuch = (parseInt(req.params.activePage) - 1) * 5;
     const totalItems = Math.ceil(await Checklist.find(
-      { "title": { $regex: `${search}`, $options: 'i' },
-        $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+      {
+        "title": { $regex: `${search}`, $options: 'i' },
+        $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
+      }
     ).count() / 5);
     if (howMuch > totalItems) {
       howMuch = totalItems;
     }
     const checkLists = await Checklist.find(
-      { "title": { $regex: `${search}`, $options: 'i' },
-        $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+      {
+        "title": { $regex: `${search}`, $options: 'i' },
+        $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
+      }
     ).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
 
     const result = checkLists.map(doc => {
@@ -285,44 +289,10 @@ const update = async (req, res) => {
   }
 };
 
-const createUserChecklistCollection = async (req, res) => {
-  try {
-    const { userID, checklistID, checkboxes_data } = req.body;
-
-    const result = await userChecklists.findOne({ userID: userID, checklistID: checklistID });
-
-    if (result) {
-      return res.status(200).json(result);
-    } else {
-      const usersChecklists = await new userChecklists({
-        userID: userID,
-        checklistID: checklistID,
-        checkboxes_data: checkboxes_data
-      }).save();
-      return res.json(usersChecklists);
-    }
-  }
-  catch (error) {
-    res.status(500);
-  }
-}
-
-const setCheckboxesData = async (req, res) => {
-  try {
-    const { id, checkboxArray } = req.body;
-    
-    await userChecklists.findByIdAndUpdate(id, { $set: { checkboxes_data: checkboxArray } });
-
-    return res.status(200).json({ message: "Setted" })
-  }
-  catch (error) {
-    return res.status(500);
-  }
-}
-
 const deleteList = async (req, res) => {
   try {
     const deletedList = await Checklist.findByIdAndDelete(req.params.id);
+    await userChecklists.find({ checklistID: req.params.id }).remove();
     if (deletedList) {
       res.status(200).json({ message: `Deleted list: ${deletedList.title}` });
     } else res.sendStatus(404);
@@ -342,6 +312,4 @@ module.exports = {
   searchByAuthor,
   searchFilter,
   getFive,
-  setCheckboxesData,
-  createUserChecklistCollection
 };
