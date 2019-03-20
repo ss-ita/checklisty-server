@@ -48,6 +48,8 @@ const signIn = async (req, res) => {
     const validPassword = await bcrypt.compareSync(password, user.password);
     if (!validPassword) return res.status(400).json({ message: 'Invalid email or password!' });
 
+    if (user.isBlocked) return res.status(403).json({ message: 'You can not login because you are blocked!' });
+
     user.password = '';
 
     const token = user.generateAuthToken();
@@ -76,6 +78,8 @@ const socialAuth = async (req, res) => {
   try {
     const id = req.session.passport.user;
     const user = await User.findById(id);
+
+    if (user.isBlocked) return res.redirect(`${baseURL}/blocked`);
 
     const token = user.generateAuthToken();
 
