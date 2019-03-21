@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+var uniqueValidator = require('mongoose-unique-validator');
 const Joi = require('joi');
 const slug = require('mongoose-slug-updater');
 const Section = require('./section-model');
@@ -17,6 +18,8 @@ const checklistSchema = new mongoose.Schema({
   creation_date: { type: Date, default: Date.now() },
   sections_data: [Section.sectionSchema]
 });
+
+checklistSchema.plugin(uniqueValidator);
 
 const Checklist = mongoose.model('Checklist', checklistSchema);
 
