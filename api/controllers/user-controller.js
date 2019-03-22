@@ -4,7 +4,7 @@ const { blockedOrDeletedEmail } = require('../utils/email-generator');
 
 const statusChange = async (req, res) => {
   try {
-    const { id: operatedUserId } =  req.params;
+    const { id: operatedUserId } = req.params;
     const { userStatus = 'blocked' } = req.query;
 
     const statusChangedUser = await User.findByIdAndUpdate(
