@@ -16,7 +16,7 @@ const statusChange = async (req, res) => {
     sendEmail({ emailGenerator: blockedOrDeletedEmail, userEmail: statusChangedUser.email, subjectOption: `You was ${userStatus}!`,
       username: statusChangedUser.username, userOrList: 'you', blockedOrDeleted: userStatus });
 
-    return res.status(200).json({ message: `User is successfuly ${statusChangedUser.isBlocked}!`});
+    return res.status(200).json({ message: `User status is ${userStatus}!`});
   } catch (err) {
     return res.status(500);
   }
@@ -49,7 +49,7 @@ const getUsers = async (req, res) => {
   try {
     if (req.params.id) return res.status(200).json(await User.findById(req.params.id).select('-password'));
 
-    let { searchQuery = 'username', search = '', page = 1, perPage = 5, sortQuery = 'username' } = req.query;
+    let { searchQuery = 'username', search = '', page = 1, perPage = 10, sortQuery = 'username' } = req.query;
     let order = 1;
 
     if (sortQuery[0] === '-' ) {

@@ -17,7 +17,7 @@ const checklistSchema = new mongoose.Schema({
   slug: { type: String, slug: "title", unique: true, slugPaddingSize: 2 },
   creation_date: { type: Date, default: Date.now() },
   sections_data: [Section.sectionSchema]
-});
+}, { timestamps: true });
 
 checklistSchema.plugin(uniqueValidator);
 
