@@ -22,13 +22,13 @@ const teamSchema = new mongoose.Schema({
     ref: 'User' ,
     required: true,
   },
+  requested: [{
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User',
+  }],
   members: [ {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    accepted: { 
-      type: Boolean, 
-      default: false,
-    },
   }],
   messages: [{ message }],
 });
