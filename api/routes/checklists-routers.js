@@ -19,6 +19,6 @@ router.delete('/delete-history/userid=:id', viewedChecklistController.deleteHist
 router.post('/create/:id/:sectionId', authCheck, checklistControler.createCheckListItem);
 router.get('/:id', checklistControler.getOne);
 router.put('/:id', checklistControler.update);
-router.delete('/:id', checklistControler.deleteList);
+router.delete('/:id', authCheck, checklistControler.deleteList);
 
 module.exports = router;
