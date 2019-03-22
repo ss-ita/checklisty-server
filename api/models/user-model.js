@@ -18,10 +18,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  creation_date: { 
-    type: Date, 
-    default: Date.now() 
-  },
   password: {
     type: String,
   },
@@ -52,7 +48,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-});
+}, { timestamps: true });
 
 userSchema.plugin(uniqueValidator);
 
