@@ -24,7 +24,7 @@ const updateProfile = async (req, res) => {
     return res.status(200).json({ updatedUser, message: 'Name and email changed!' });
   } catch (err) {
     if (err.name === 'ValidationError') return res.status(409).json(err);
-    else return res.status(500);
+    else return res.sendStatus(500);
   }
 }
 
@@ -51,7 +51,7 @@ const updateUserPassword = async (req, res) => {
 
     return res.status(200).json({ message: 'Password changed!' });
   } catch (err) {
-    return res.status(500);
+    return res.sendStatus(500);
   }
 }
 
