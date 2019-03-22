@@ -99,12 +99,25 @@ const getAll = async (req, res) => {
   }
 };
 const getFive = async (req, res) => {
-  try {
-    const howMuch = (parseInt(req.params.activePage) - 1) * 5;
-    const checkLists = await Checklist.find(
-      { $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] }
-    ).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
-    const totalItems = Math.ceil(await Checklist.count() / 5);
+
+  try { 
+    const limitItemsInPage = parseInt(req.params.itemsInPage);
+    const searchValue = req.params.searchValue;
+    let howItemsSkip = (parseInt(req.params.activePage) - 1) * limitItemsInPage;
+    let checkLists = null;
+    let totalItems = null;
+    if(searchValue === 'undefined'){
+      totalItems = await Checklist.find({ $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).count();
+      if (req.params.activePage > totalItems) {
+        howItemsSkip = 0;
+      }
+      checkLists = await Checklist.find({ $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).sort({ "creation_date": -1 }).skip(howItemsSkip).limit(limitItemsInPage).populate('author', 'username');
+    }
+    else {
+      howItemsSkip = 0;
+      totalItems = Math.ceil(await Checklist.find({ "title": { $regex: `${searchValue}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).count());
+      checkLists = await Checklist.find({  "title": { $regex: `${searchValue}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).sort({ "creation_date": -1 }).skip(howItemsSkip).limit(limitItemsInPage).populate('author', 'username');
+    }
     const result = checkLists.map(doc => {
       return {
         id: doc.id,
@@ -129,7 +142,7 @@ const getFive = async (req, res) => {
       }
     });
 
-    res.status(200).json({ result, totalItems });
+    res.status(200).json({result, totalItems});
 
   } catch (error) {
     res.json(error);

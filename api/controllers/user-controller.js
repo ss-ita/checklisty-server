@@ -95,4 +95,14 @@ const deleteUser = async (req, res) => {
   }
 }
 
-module.exports = { roleChange, deleteUser, statusChange, getUsers }
+const searchUsers = async (req, res) => {
+  try{
+    const seachUserValue = req.params.searchUser;
+    const getSearchUsers = await User.find({ "username": {$regex: `${seachUserValue}`, $options: 'i'} });
+    return res.status(200).json(getSearchUsers);
+  } catch (err) {
+    return res.status(500).json(err.message);
+  }
+}
+
+module.exports = { roleChange, deleteUser, statusChange, getUsers, searchUsers };
