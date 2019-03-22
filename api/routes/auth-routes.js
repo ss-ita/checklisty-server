@@ -5,7 +5,6 @@ const forgotPasswordController = require('../controllers/forgot-password-control
 
 const router = new express.Router();
 
-
 const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 
 router.post('/signup', authController.signUp);

@@ -47,7 +47,6 @@ const validateChecklist = (checklist) => {
                 description: Joi.string()
                   .min(minLength)
                   .max(maxDescLength)
-                  .required()
                   .label('Item description'),
                 tags: Joi.any().optional(),
                 priority: Joi.number()

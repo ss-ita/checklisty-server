@@ -38,7 +38,16 @@ const userSchema = new mongoose.Schema({
   },
   image: {
     type: String
-  }
+  },
+  role: {
+    type: String,
+    enum: ['admin', 'moderator', 'user'],
+    default: 'user',
+  },
+  isBlocked: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 userSchema.plugin(uniqueValidator);

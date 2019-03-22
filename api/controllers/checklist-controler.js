@@ -1,5 +1,6 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
 const { Checklist, validateChecklist } = require('../models/checklist-model');
+const { User } = require('../models/user-model');
 const userChecklists = require('../models/users-checklists');
 
 const createCheckList = async (req, res) => {
@@ -67,9 +68,9 @@ const createCheckListItem = async (req, res) => {
 const getAll = async (req, res) => {
   try {
     const checkLists = await Checklist.find(
-      { $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+      { $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] }
     ).populate('author', 'username');
-    const totalItems = await Checklist.count({$or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]});
+    const totalItems = await Checklist.count({ $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] });
     const result = checkLists.map(doc => {
       return {
         id: doc.id,
@@ -156,15 +157,19 @@ const searchFilter = async (req, res) => {
     const search = req.params.filter;
     let howMuch = (parseInt(req.params.activePage) - 1) * 5;
     const totalItems = Math.ceil(await Checklist.find(
-      { "title": { $regex: `${search}`, $options: 'i' },
-        $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+      {
+        "title": { $regex: `${search}`, $options: 'i' },
+        $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
+      }
     ).count() / 5);
     if (howMuch > totalItems) {
       howMuch = totalItems;
     }
     const checkLists = await Checklist.find(
-      { "title": { $regex: `${search}`, $options: 'i' },
-        $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}
+      {
+        "title": { $regex: `${search}`, $options: 'i' },
+        $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
+      }
     ).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
 
     const result = checkLists.map(doc => {
@@ -250,6 +255,7 @@ const getOne = async (req, res) => {
     const result = {
       id: list.id,
       title: list.title,
+      isPrivate: list.isPrivate,
       author: list.author,
       slug: list.slug,
       creation_date: list.creation_date,
@@ -273,8 +279,17 @@ const update = async (req, res) => {
   try {
     const { title, sections_data, isPrivate } = req.body;
 
-    const list = await Checklist.findByIdAndUpdate(
-      req.params.id,
+    if (Object.keys(req.body).length) {
+      req.body.sections_data.map((section) => {
+        delete section._id;
+        return (
+          section.items_data.map(item => delete item._id)
+        );
+      });
+    }
+
+    const list = await Checklist.findOneAndUpdate(
+      { slug: req.params.id },
       { $set: { sections_data, title, isPrivate } },
       { new: true }
     );
@@ -284,48 +299,19 @@ const update = async (req, res) => {
     res.status(200).json({ message: 'List updated', list: list });
 
   } catch (error) {
-    res.json(error);
+    res.status(500).json(error);
   }
 };
 
-const createUserChecklistCollection = async (req, res) => {
-  try {
-    const { userID, checklistID, checkboxes_data } = req.body;
-
-    const result = await userChecklists.findOne({ userID: userID, checklistID: checklistID });
-
-    if (result) {
-      return res.status(200).json(result);
-    } else {
-      const usersChecklists = await new userChecklists({
-        userID: userID,
-        checklistID: checklistID,
-        checkboxes_data: checkboxes_data
-      }).save();
-      return res.json(usersChecklists);
-    }
-  }
-  catch (error) {
-    res.status(500);
-  }
-}
-
-const setCheckboxesData = async (req, res) => {
-  try {
-    const { id, checkboxArray } = req.body;
-    
-    await userChecklists.findByIdAndUpdate(id, { $set: { checkboxes_data: checkboxArray } });
-
-    return res.status(200).json({ message: "Setted" })
-  }
-  catch (error) {
-    return res.status(500);
-  }
-}
-
 const deleteList = async (req, res) => {
   try {
+    const checkListCheck = await Checklist.findById(req.params.id);
+    const operatingUser = await User.findById(req.userData.id);
+    if ( checkListCheck.author !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator')) {
+      return res.status(403).json({ message: 'Access denied!' });
+    }
     const deletedList = await Checklist.findByIdAndDelete(req.params.id);
+    await userChecklists.find({ checklistID: req.params.id }).remove();
     if (deletedList) {
       res.status(200).json({ message: `Deleted list: ${deletedList.title}` });
     } else res.sendStatus(404);
@@ -345,6 +331,4 @@ module.exports = {
   searchByAuthor,
   searchFilter,
   getFive,
-  setCheckboxesData,
-  createUserChecklistCollection
 };
