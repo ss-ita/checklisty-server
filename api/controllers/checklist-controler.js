@@ -273,6 +273,13 @@ const update = async (req, res) => {
   try {
     const { title, sections_data, isPrivate } = req.body;
 
+    const operatingUser = await User.findById(req.userData.id);
+    const checkListCheck = await Checklist.findOne({ slug: req.params.id });
+    
+    if (checkListCheck.author !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator')) {
+      return res.status(403).json({ message: 'Access denied!' });
+    }
+
     if (Object.keys(req.body).length) {
       req.body.sections_data.map((section) => {
         delete section._id;
