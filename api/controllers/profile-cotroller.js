@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { User, validate } = require('../models/user-model');
 
+
 const updateProfile = async (req, res) => {
   try {
     const userId = req.userData.id;
@@ -8,7 +9,6 @@ const updateProfile = async (req, res) => {
     const userParams = { username: req.body.username, email: req.body.email };
         
     if(!userParams.username && !userParams.email) return res.status(409).json({message: "Please fill the form!"});
-    
     const { error } = validate(req.body);
     if (error) return res.status(400).json({message: error.details[0].message});
     if (user.username === req.body.username) delete userParams.username;
@@ -21,10 +21,10 @@ const updateProfile = async (req, res) => {
       { runValidators: true, context: 'query', new: true }
     ).select('-password');
         
-    return res.status(200).json({ updatedUser, message: 'Name and email changed!' });
+    res.status(200).json({ updatedUser, message: 'Name and email changed!' });
   } catch (err) {
-    if (err.name === 'ValidationError') return res.status(409).json(err);
-    else return res.sendStatus(500);
+    if (err.name === 'ValidationError') res.status(409).json(err);
+    else res.status(500).json(err);
   }
 }
 
@@ -32,26 +32,25 @@ const updateUserPassword = async (req, res) => {
   try {
     const userId = req.userData.id;
     const user = await User.findById(userId);
-    const { newPassword, oldPassword } = req.body;
 
-    if (oldPassword === newPassword) return res.status(400).json({ 
+    if (req.body.oldPassword === req.body.newPassword) return res.status(400).json({ 
       message: 'Old and new passwords must be different!' 
     });
 
-    const { error } = validate({ password: newPassword });
+    const { error } = validate({ password: req.body.newPassword });
     if (error) return res.status(400).json({message: error.details[0].message});
         
-    const validPassword = bcrypt.compareSync(oldPassword, user.password);
+    const validPassword = bcrypt.compareSync(req.body.oldPassword, user.password);
     if (!validPassword) return res.status(400).json({ message: 'Invalid old password!'});
 
     const salt = bcrypt.genSaltSync(10);
-    const setNewPassword = bcrypt.hashSync(newPassword, salt);
+    const newPassword = bcrypt.hashSync(req.body.newPassword, salt);
 
-    await User.findByIdAndUpdate(userId, { $set: { password: setNewPassword } });
+    await User.findByIdAndUpdate(userId, { $set: { password: newPassword } });
 
-    return res.status(200).json({ message: 'Password changed!' });
+    res.status(200).json({ message: 'Password changed!' });
   } catch (err) {
-    return res.sendStatus(500);
+    res.status(500).json(err);
   }
 }
 

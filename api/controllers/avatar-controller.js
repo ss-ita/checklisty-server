@@ -41,10 +41,9 @@ const avatarUploadBase64 = async (req,res) => {
     if (err) return res.status(500);
     try {
       const updatedUser = await User.findByIdAndUpdate(userId, { $set: { image: data.Location } }, { new: true}).select('-password');
-
       return res.status(200).json(updatedUser);
     } catch (err) {
-      return res.status(500);
+      return res.sendStatus(500);
     }
   });
 };
@@ -89,11 +88,11 @@ const avatarUploadMulter = (req, res, next) => {
 
         return res.status(200).json(updatedUser);
       } catch (err) {
-        return res.status(500);
+        return res.sendStatus(500);
       }
     })
   } catch (err) {
-    return res.status(500);
+    return res.sendStatus(500);
   }
 }
 

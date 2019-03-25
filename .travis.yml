@@ -1,15 +1,19 @@
 language: node_js
 node_js:
 - lts/*
+
 cache:
   directories:
   - node_modules
+
 script:
 - yarn install
 - yarn test
 - yarn lint
+
 notifications:
   email: false
+
 env:
   global:
   - secure: FlwzKDN8HXl1cuGBhtQwbm/GjbOVMcLfEhcJkKky+2aGIhe4BOSxjMynrCts7eM53a87GMnyJXsmFxKOeO+w8RYqHVixD77duejV2o+XkoZL1QWORqiSMyK8dvLNc+lqoJ1Lf+qFqOOQCq1TxJ4W5ycFs82/hJMlMuu8jf2fxGhENoDwcARivZ0Fsrq/4/JA+YS3JjG6dqr78M7VwhrKv4mk4M5wMHiacHpKPhHib56v//wwUtsgYnyVLV0n+CPBlm6yh2aWbESt+YLU4uar39gumpG5bzp4+F01qDrWQwi3ctArOYZ5sKHgSfHZDP4jOEcKF4pYWoUlMqkT1vInmK27jnoiiCjZzQ6sfLw2O8eTb104Rlbgae4ttY38KWNE5N5w37DvSV5VzkAZ5xJuXb4j+GF/YmDep5tKNFKgjyUkFeNb7gXY/9INaJlCMiw6guQ6dYRoQlHCbv43jLnxy75E5PHPKMKHkZEi1nfvCKBYgJhIZxZ1PEjWyrupvnt+eyV0IxC7e9vCr/Ih8GkUEPa/uFVHAhDzr5x11OxQogOlSbh+G1kytUS2LhUyxqnQeFwo0DZACML/GPW41r2iXmIwI+SZzSVuT/01ZTRJNiS56UfnncI/+q5rbHR/1muTArnEqbeCISOP0YN2cBF4MefelXuNmjy2IJop56vea/U=

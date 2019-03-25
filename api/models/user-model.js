@@ -26,8 +26,11 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'moderator', 'user'],
     default: 'user',
   },
-  isBlocked: { type: Boolean, default: false },
-});
+  isBlocked: {
+    type: Boolean,
+    default: false,
+  },
+}, { timestamps: true });
 
 userSchema.plugin(uniqueValidator);
 

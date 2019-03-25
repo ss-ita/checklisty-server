@@ -16,19 +16,17 @@ const statusChange = async (req, res) => {
     sendEmail({ emailGenerator: blockedOrDeletedEmail, userEmail: statusChangedUser.email, subjectOption: `You was ${userStatus}!`,
       username: statusChangedUser.username, userOrList: 'you', blockedOrDeleted: userStatus });
 
-    return res.status(200).json({ message: `User is successfuly ${statusChangedUser.isBlocked}!`});
+    return res.status(200).json({ message: `User is successfuly ${statusChangedUser.isBlocked ? 'blocked' : 'unblocked'}!`});
   } catch (err) {
-    return res.status(500);
+    return res.sendStatus(500);
   }
 }
 
 const roleChange = async (req, res) => {
   try {
-    if (req.userData.operatedUserBlockStatus) return res.status(403).json( { message: 'You can not give moderator rights to blocked user!'});
+    const { operatedUserBlockStatus } = req.userData;
 
-    const { operatingUserRole, operatedUserRole } = req.userData;
-
-    if (!(operatingUserRole === 'admin' && operatedUserRole !== 'admin')) return res.status(403).json({ message: 'Access denied!'});
+    if (operatedUserBlockStatus) return res.status(403).json( { message: 'You can not give moderator rights to blocked user!'});
 
     const { id: operatedUserId } =  req.params;
     const { userRole = 'user' } = req.query;
@@ -41,7 +39,7 @@ const roleChange = async (req, res) => {
 
     return res.status(200).json(`User role was changed to ${updatedUser.role}!`);
   } catch (err) {
-    return res.status(500);
+    return res.sendStatus(500);
   }
 }
 
@@ -49,7 +47,7 @@ const getUsers = async (req, res) => {
   try {
     if (req.params.id) return res.status(200).json(await User.findById(req.params.id).select('-password'));
 
-    let { searchQuery = 'username', search = '', page = 1, perPage = 5, sortQuery = 'username' } = req.query;
+    let { searchQuery = 'username', search = '', page = 1, perPage = 10, sortQuery = 'username' } = req.query;
     let order = 1;
 
     if (sortQuery[0] === '-' ) {
@@ -76,14 +74,13 @@ const getUsers = async (req, res) => {
 
     return res.status(200).json({ usersPerPage, totalPages }); 
   } catch (err) {
-    return res.status(500);
+    return res.sendStatus(500);
   }
 }
 
 const deleteUser = async (req, res) => {
   try {
     const { id: operatedUserId } = req.params;
-
     const deletedUser = await User.findByIdAndDelete(operatedUserId);
 
     sendEmail({ emailGenerator: blockedOrDeletedEmail, userEmail: deletedUser.email, subjectOption: 'You was deleted!',
@@ -91,8 +88,18 @@ const deleteUser = async (req, res) => {
 
     return res.status(200).json({ message: 'User successfuly deleted!'});
   } catch (err) {
-    return res.status(500);
+    return res.sendStatus(500);
   }
 }
 
-module.exports = { roleChange, deleteUser, statusChange, getUsers }
+const searchUsers = async (req, res) => {
+  try{
+    const seachUserValue = req.params.searchUser;
+    const getSearchUsers = await User.find({ "username": {$regex: `${seachUserValue}`, $options: 'i'} });
+    return res.status(200).json(getSearchUsers);
+  } catch (err) {
+    return res.sendStatus(500);
+  }
+}
+
+module.exports = { roleChange, deleteUser, statusChange, getUsers, searchUsers };
