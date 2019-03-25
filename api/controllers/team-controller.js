@@ -1,19 +1,45 @@
 const sendEmail = require('../utils/send-email');
 const { inviteUserToTeam } = require('../utils/email-generator');
-const { Team } = require('../models/team-model');
+const { Team } = require('../models/team/team-model');
 const { User } = require('../models/user-model');
 
 
 const createTeam = async (req, res) => {
   try {
-    const { name, creator } = req.body;
+    const { id: creator } = req.userData;
+    const { name, requested, url } = req.body;
+    const errors = [];
 
-    if (!name) return res.status(422).json({ message: 'Creator is absent' });
-    if (!creator) return res.status(422).json({ message: 'Name is required' });
+    if (!creator) return res.status(422).json({ message: 'Creator is absent' });
+    if (!name) return res.status(422).json({ message: 'Name is required' });
 
-    const team = await new Team({ creator, name }).save();
+    const team = await new Team({ creator, name, members: [creator] });
+
+    const inviting = User.findById(creator).select('username');
+
+    requested.split(',').map(el => {
+      team.requested.push(el);
+    });
+
+    team.requested.map(async (id) => {
+      const invited = await User.findById(id).select('username email');
+      if (!invited) {
+        errors.push(`User with ${id} hasn't been founded, please check user id`);
+      } else {
+        sendEmail({ emailGenerator: inviteUserToTeam, 
+          userEmail: invited.email, 
+          userName: invited.username,
+          subjectOption: `You invited to team ${team.name}`,
+          team,
+          inviting,
+          url,
+          invited: invited.username});
+      }
+    });
+
+    await team.save();
     
-    res.status(200).json({ message: 'Team created', team });
+    res.status(200).json({ message: 'Team created', team, errors });
   } catch (err) {
     res.json(err.message); 
   }
@@ -37,7 +63,8 @@ const getTeam = async (req, res) => {
 
 const inviteMember = async (req, res) => {
   try {
-    const { inviting, invitedId, teamId, url } = req.body;
+    const { id: inviting } = req.userData;
+    const { invitedId, teamId, url } = req.body;
     if (!invitedId) return res.status(422).json({ message: 'Invited user id is absent' });
 
     let team = await Team.findOne({ _id: teamId }).select('name requested members')
@@ -95,6 +122,6 @@ const joinTeam = async (req, res) => {
   } catch(err) {
     res.json(err.message);
   }
-}
+};
 
 module.exports = { createTeam, getTeam, inviteMember, joinTeam };

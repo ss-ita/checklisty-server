@@ -13,6 +13,6 @@ router.use('/auth', authRouter);
 router.use('/checklists', checkListRouter);
 router.use('/profile', authCheck, profileRouter);
 router.use('/admin', authCheck, roleCheck, userRoutes);
-router.use('/team', teamRouter);
+router.use('/team',authCheck, teamRouter);
 
 module.exports = router;
