@@ -8,33 +8,17 @@ const { User } = require('../models/user-model');
 const createTeam = async (req, res) => {
   try {
     const { id: creator } = req.userData;
-    const { name, requested, url } = req.body;
+    const { name, requested } = req.body;
 
     if (!creator) return res.status(422).json({ message: 'Creator is absent' });
     if (!name) return res.status(422).json({ message: 'Name is required' });
 
     const team = await new Team({ creator, name, members: [creator] });
 
-    const inviting = User.findById(creator).select('username');
-
     if (requested) {
       requested.split(',').map(el => {
         team.requested.push(el);
       });
-  
-      team.requested.map(async (id) => {
-        const invited = await User.findById(id).select('username email');
-        const inviteToken = team.generateTeamToken(id);
-        
-        sendEmail({ emailGenerator: inviteUserToTeam, 
-          userEmail: invited.email, 
-          userName: invited.username,
-          subjectOption: `You invited to team ${team.name}`,
-          team,
-          inviting: inviting.username,
-          url: url + inviteToken,
-          invited: invited.username});
-      });  
     }
 
     await team.save();
@@ -56,6 +40,36 @@ const getTeam = async (req, res) => {
     res.status(200).json(team);
   } catch (err) {
     res.json(err.message); 
+  }
+};
+
+const inviteMembers = async (req, res) => {
+  try {
+    const { teamId, url } = req.body;
+
+    let team = await Team.findOne({ _id: teamId }).select('name creator requested')
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+
+    const inviting = await User.findById(team.creator).select('username');
+
+    team.requested.map(async id => {
+      const invited = await User.findById(id).select('username email');
+
+      const inviteToken = team.generateTeamToken(id);
+      
+      sendEmail({ emailGenerator: inviteUserToTeam, 
+        userEmail: invited.email, 
+        userName: invited.username,
+        subjectOption: `You invited to team ${team.name}`,
+        team,
+        inviting: inviting.username,
+        url: url + inviteToken,
+        invited: invited.username});      
+    });
+
+    res.status(200).json({ message: 'Users invited' });
+  } catch(err) {
+    res.json(err.message);
   }
 };
 
@@ -128,4 +142,4 @@ const joinTeam = async (req, res) => {
   }
 };
 
-module.exports = { createTeam, getTeam, inviteMember, joinTeam };
+module.exports = { createTeam, getTeam, inviteMembers, inviteMember, joinTeam };

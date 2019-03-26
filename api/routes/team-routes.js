@@ -7,7 +7,8 @@ const router = new express.Router();
 router.get('/team/:id', teamController.getTeam);
 router.get('/join/:token', teamController.joinTeam);
 router.post('/', teamController.createTeam);
-router.post('/invite', teamController.inviteMember);
+router.post('/invite', teamController.inviteMembers);
+router.post('/inviteOne', teamController.inviteMember);
 
 router.get('/chat/:id', messageController.getAllMessages);
 router.post('/chat/:id', messageController.sendMessage);
