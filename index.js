@@ -11,7 +11,7 @@ const passportSetup = require('./passport/passport-setup');
 
 mongoose.connect(
   `mongodb://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_HOST}`, 
-  { useNewUrlParser: true })
+  { useNewUrlParser: true, useCreateIndex: true, })
   .then(() => {
     console.log('Connected to mongodb'); //eslint-disable-line
   })

@@ -13,32 +13,14 @@ const userSchema = new mongoose.Schema({
     maxlength: maxLength,
     unique: true,
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-  },
-  googleId: {
-    type: String
-  },
-  facebookId: {
-    type: String
-  },
-  githubId: {
-    type: String
-  },
-  team: {
-    type: String
-  },
-  location: {
-    type: String
-  },
-  image: {
-    type: String
-  },
+  email: { type: String, required: true, unique: true },
+  password: { type: String },
+  googleId: { type: String },
+  facebookId: { type: String },
+  githubId: { type: String },
+  team: { type: String },
+  location: { type: String },
+  image: { type: String },
   role: {
     type: String,
     enum: ['admin', 'moderator', 'user'],

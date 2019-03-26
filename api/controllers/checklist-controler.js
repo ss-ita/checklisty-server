@@ -1,6 +1,6 @@
-const { Checklist, validateChecklist } = require('../models/checklist-model');
+const { Checklist, validateChecklist } = require('../models/checklists/checklist-model');
 const { User } = require('../models/user-model');
-const userChecklists = require('../models/users-checklists');
+const userChecklists = require('../models//checklists/users-checklists');
 
 const createCheckList = async (req, res) => {
   try {
@@ -200,7 +200,7 @@ const searchFilter = async (req, res) => {
 const searchByAuthor = async (req, res) => {
   try {
     const author = req.params.id;
-    const lists = await Checklist.find({ author });
+    const lists = await Checklist.find({ author }).select('');
 
     const result = lists.map(doc => {
       return {
@@ -219,20 +219,6 @@ const searchByAuthor = async (req, res) => {
           return tags;
         }),
         creation_date: doc.creation_date,
-        sections_data: doc.sections_data.map(section => {
-          return {
-            section_title: section.section_title,
-            items_data: section.items_data.map(item => {
-              return {
-                item_title: item.item_title,
-                description: item.description,
-                details: item.details,
-                tags: item.tags,
-                priority: item.priority,
-              }
-            })
-          }
-        })
       }
     });
 
