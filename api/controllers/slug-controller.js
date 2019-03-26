@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const { Checklist } = require('../models/checklist-model');
+const { Checklist } = require('../models/checklists/checklist-model');
 
 const minLength = 1;
 const maxLength = 256;

@@ -5,6 +5,7 @@ const profileRouter = require('./profile-routes');
 const authCheck = require('../middlewares/auth-check');
 const myTeamRouter = require('./myTeamRouter');
 const userRoutes = require('./user-routes');
+const teamRouter = require('./team-routes');
 const roleCheck = require('../middlewares/role-check');
 
 const router = new express.Router();
@@ -14,5 +15,6 @@ router.use('/auth', authRouter);
 router.use('/checklists', checkListRouter);
 router.use('/profile', authCheck, profileRouter);
 router.use('/admin', authCheck, roleCheck, userRoutes);
+router.use('/team',authCheck, teamRouter);
 
 module.exports = router;
