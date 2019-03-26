@@ -55,14 +55,14 @@ const getUsers = async (req, res) => {
       sortQuery = sortQuery.slice(1);
     }
 
-    const totalUsers = await User.count();
+    const totalUsers = await User.count({ [searchQuery]: { $regex: `${search}`, $options: 'i' } });
 
     if (perPage > totalUsers) {
       perPage = totalUsers;
       page = 1;
     }
 
-    const totalPages = Math.ceil(totalUsers / perPage);
+    let totalPages = Math.ceil(totalUsers / perPage);
 
     if (page > totalPages) {
       page = totalPages;
