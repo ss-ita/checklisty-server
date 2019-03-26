@@ -7,20 +7,12 @@ module.exports = async (req, res, next) => {
     if (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator') {
       return res.status(403).json({ message: 'Access denied!'});
     }
-
-    if (req.params.id) { 
-      const operatedUser = await User.findById(req.params.id);
-      
-      if (!operatedUser) return next();
-
-      req.userData.operatedUserRole = operatedUser.role;
-      req.userData.operatedUserBlockStatus = operatedUser.isBlocked;
-    }
+    
     req.userData.operatingUserRole = operatingUser.role;
 
     return next();
 
   } catch (err) {
-    return res.status(500);
+    return res.sendStatus(500);
   }
 }
