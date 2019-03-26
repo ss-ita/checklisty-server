@@ -8,8 +8,8 @@ cache:
 
 script:
 - yarn install
-- yarn test
-- yarn lint
+# - yarn test
+# - yarn lint
 
 deploy:
   provider: heroku
