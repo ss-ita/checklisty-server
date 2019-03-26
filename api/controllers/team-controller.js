@@ -31,7 +31,7 @@ const createTeam = async (req, res) => {
           userName: invited.username,
           subjectOption: `You invited to team ${team.name}`,
           team,
-          inviting,
+          inviting: inviting.username,
           url: url + inviteToken,
           invited: invited.username});
       });  
@@ -61,7 +61,7 @@ const getTeam = async (req, res) => {
 
 const inviteMember = async (req, res) => {
   try {
-    const { id: inviting } = req.userData;
+    const { id: invitingId } = req.userData;
     const { invitedId, teamId, url } = req.body;
     if (!invitedId) return res.status(422).json({ message: 'Invited user id is absent' });
 
@@ -77,6 +77,8 @@ const inviteMember = async (req, res) => {
     const invited = await User.findById(invitedId).select('username email');
     if (!invited) return res.status(404).json({ message: 'Invited user not found' });
 
+    const inviting = await User.findById(invitingId).select('username');
+
     const inviteToken = team.generateTeamToken(invitedId);
 
     team = await Team.findOneAndUpdate({ _id: teamId }, { $push: { requested: invitedId } }, { new: true })
@@ -87,7 +89,7 @@ const inviteMember = async (req, res) => {
       userName: invited.username,
       subjectOption: `You invited to team ${team.name}`,
       team,
-      inviting,
+      inviting: inviting.username,
       url: url + inviteToken,
       invited: invited.username});
 
