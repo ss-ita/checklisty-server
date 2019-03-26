@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/send-email');
 const { inviteUserToTeam } = require('../utils/email-generator');
 const { Team } = require('../models/team/team-model');
@@ -8,7 +9,6 @@ const createTeam = async (req, res) => {
   try {
     const { id: creator } = req.userData;
     const { name, requested, url } = req.body;
-    const errors = [];
 
     if (!creator) return res.status(422).json({ message: 'Creator is absent' });
     if (!name) return res.status(422).json({ message: 'Name is required' });
@@ -17,29 +17,29 @@ const createTeam = async (req, res) => {
 
     const inviting = User.findById(creator).select('username');
 
-    requested.split(',').map(el => {
-      team.requested.push(el);
-    });
-
-    team.requested.map(async (id) => {
-      const invited = await User.findById(id).select('username email');
-      if (!invited) {
-        errors.push(`User with ${id} hasn't been founded, please check user id`);
-      } else {
+    if (requested) {
+      requested.split(',').map(el => {
+        team.requested.push(el);
+      });
+  
+      team.requested.map(async (id) => {
+        const invited = await User.findById(id).select('username email');
+        const inviteToken = team.generateTeamToken(id);
+        
         sendEmail({ emailGenerator: inviteUserToTeam, 
           userEmail: invited.email, 
           userName: invited.username,
           subjectOption: `You invited to team ${team.name}`,
           team,
           inviting,
-          url,
+          url: url + inviteToken,
           invited: invited.username});
-      }
-    });
+      });  
+    }
 
     await team.save();
     
-    res.status(200).json({ message: 'Team created', team, errors });
+    res.status(200).json({ message: 'Team created', team });
   } catch (err) {
     res.json(err.message); 
   }
@@ -48,11 +48,9 @@ const createTeam = async (req, res) => {
 const getTeam = async (req, res) => {
   try {
     const { id } = req.params;
-
     if (!id) return res.status(422).json({ message: 'Team id is absent' });
     
     const team = await Team.findById(id).populate({ path: 'creator', select: 'username' });
-
     if (!team) return res.status(404).json({ message: 'Team not founded' });
     
     res.status(200).json(team);
@@ -79,6 +77,8 @@ const inviteMember = async (req, res) => {
     const invited = await User.findById(invitedId).select('username email');
     if (!invited) return res.status(404).json({ message: 'Invited user not found' });
 
+    const inviteToken = team.generateTeamToken(invitedId);
+
     team = await Team.findOneAndUpdate({ _id: teamId }, { $push: { requested: invitedId } }, { new: true })
       .select('name');
     
@@ -88,7 +88,7 @@ const inviteMember = async (req, res) => {
       subjectOption: `You invited to team ${team.name}`,
       team,
       inviting,
-      url,
+      url: url + inviteToken,
       invited: invited.username});
 
     res.status(200).json({ message: 'User invited' });
@@ -99,14 +99,17 @@ const inviteMember = async (req, res) => {
 
 const joinTeam = async (req, res) => {
   try {
-    const { teamId, userId } = req.params;
-
+    const { token } = req.query;
+    const { teamId, userId } = jwt.verify(token, process.env.JWT_KEY);
     if (!teamId || !userId) res.status(422).json({ message: 'Team or user id is absent' });
 
     const user = await User.findById(userId).select('username');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    let team = await Team.findById(teamId).select('members');
+    let team = await Team.findById(teamId).select('members requested');
+
+    const isRequested = team.requested.some(requested => requested == userId);
+    if (!isRequested) return res.status(422).json({ message: 'User is not requested to team' }); 
 
     const isMember = team.members.some(member => member == userId);
     if (isMember) return res.status(422).json({ message: 'User if already a member' });
@@ -116,7 +119,6 @@ const joinTeam = async (req, res) => {
       { $push: { members: userId }, $pull: { requested: userId } }, 
       { new: true }
     );
-    if (!team) return res.status(404).json({ message: 'Team not found' });
 
     res.status(200).send(`${user.username} joinded a team ${team.name}`);
   } catch(err) {

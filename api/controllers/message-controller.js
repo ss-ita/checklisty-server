@@ -44,5 +44,4 @@ const deleteMessage = async (req, res) => {
   res.status(200).json({ message: 'Message deleted' });
 };
  
-
 module.exports = { sendMessage, getAllMessages, editMessage, deleteMessage };

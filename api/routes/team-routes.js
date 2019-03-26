@@ -4,8 +4,8 @@ const messageController = require('../controllers/message-controller');
 
 const router = new express.Router();
 
-router.get('/:id', teamController.getTeam);
-router.get('/join/team=:teamId&user=:userId', teamController.joinTeam);
+router.get('/team/:id', teamController.getTeam);
+router.get('/join/:token', teamController.joinTeam);
 router.post('/', teamController.createTeam);
 router.post('/invite', teamController.inviteMember);
 

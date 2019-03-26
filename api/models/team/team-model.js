@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slug = require('mongoose-slug-updater');
+const jwt = require('jsonwebtoken');
 
 mongoose.plugin(slug);
 
@@ -14,8 +15,15 @@ const teamSchema = new mongoose.Schema({
   checklists: [{ type: mongoose.Schema.Types.ObjectId,  ref: 'Checklists' }]
 });
 
-teamSchema.methods.convertToId = function (id) {
-  return mongoose.Types.ObjectId(id);
+teamSchema.methods.generateTeamToken = function (userId) {
+  const token = jwt.sign(
+    {
+      teamId: this._id,
+      userId
+    },
+    process.env.JWT_KEY,
+  );
+  return token;
 };
 
 const Team = new mongoose.model('Team', teamSchema);
