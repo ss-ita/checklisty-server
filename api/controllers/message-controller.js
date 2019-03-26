@@ -9,13 +9,40 @@ const sendMessage = async (req, res) => {
   let team = await Team.findById(teamId);
   if (!team) return res.status(404).json({ message: 'Team not found' });
 
-  let message = new Message({ sender, teamId, text });
-
-  await message.save();
+  let message = new Message({ sender, text, teamId });
 
   message = await Message.populate(message, {path: 'sender', select: 'username'});
 
-  res.status(200).json(`message send ${message}`);
+  message = await message.save();
+  
+  res.status(200).json(message);
 };
 
-module.exports = { sendMessage };
+const getAllMessages = async (req, res) => {
+  const { id: teamId } = req.params; 
+
+  const messages = await Message.find({ teamId })
+    .populate({ path: 'sender', select: 'username' })
+    .sort({ createdAt: 1 })
+
+  res.status(200).json(messages);
+};
+
+const editMessage = async (req, res) => {
+  const { id: messageId } = req.params;
+  const { text } = req.body;
+
+  const message = await Message.findOneAndUpdate({ _id: messageId }, { text }, { new: true });
+
+  res.status(200).json(message);
+};
+
+const deleteMessage = async (req, res) => {
+  const { id: messageId } = req.params;
+
+  await Message.findOneAndRemove({ _id: messageId });
+  res.status(200).json({ message: 'Message deleted' });
+};
+ 
+
+module.exports = { sendMessage, getAllMessages, editMessage, deleteMessage };
