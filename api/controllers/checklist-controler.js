@@ -262,7 +262,7 @@ const update = async (req, res) => {
     const operatingUser = await User.findById(req.userData.id);
     const checkListCheck = await Checklist.findOne({ slug: req.params.id });
     
-    if (checkListCheck.author !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator')) {
+    if (String(checkListCheck.author) !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator')) {
       return res.status(403).json({ message: 'Access denied!' });
     }
 
