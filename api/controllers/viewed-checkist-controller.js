@@ -57,4 +57,5 @@ const deleteHistoryOfViewedLists = async (req, res) => {
 module.exports = {
   getViewedChecklists,
   deleteHistoryOfViewedLists,
+  countpercentProgress
 };

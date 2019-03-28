@@ -200,29 +200,22 @@ const searchFilter = async (req, res) => {
 const searchByAuthor = async (req, res) => {
   try {
     const author = req.params.id;
-    const lists = await Checklist.find({ author }).select('');
-
-    const result = lists.map(doc => {
-      return {
+    const lists = await Checklist.find({ author }).sort({ "creation_date": -1 }).select('');
+    let result =  await Promise.all(lists.map(async doc => {
+      const progress = await doc.getProgress(author);
+      const res =  {
         id: doc.id,
         title: doc.title,
         slug: doc.slug,
-        tags: doc.sections_data.map(data => {
-          const tags = [];
-          data.items_data.map(el => {
-            el.tags.map(item => {
-              if (!tags.includes(item)) {
-                tags.push(item);
-              }
-            })
-          });
-          return tags;
-        }),
+        isPrivate: doc.isPrivate,
+        tags: doc.getTags(),
+        progress,
         creation_date: doc.creation_date,
-      }
-    });
+      };
+      return res;
+    }));
 
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
     res.json(error.message);
   }

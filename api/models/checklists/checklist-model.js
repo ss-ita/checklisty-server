@@ -3,6 +3,8 @@ var uniqueValidator = require('mongoose-unique-validator');
 const Joi = require('joi');
 const slug = require('mongoose-slug-updater');
 const Section = require('./section-model');
+const userChecklists = require('./users-checklists');
+const { countpercentProgress } = require('../../controllers/viewed-checkist-controller');
 
 const minLength = 1;
 const maxLength = 256;
@@ -20,6 +22,26 @@ const checklistSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 checklistSchema.plugin(uniqueValidator);
+
+checklistSchema.methods.getTags = function() {
+  const tags = [];
+  this.sections_data.map(section => {
+    section.items_data.map(el => {
+      el.tags.map(item => {
+        if (!tags.includes(item)) {
+          tags.push(item);
+        }
+      })
+    });
+  });
+  return tags
+};
+
+checklistSchema.methods.getProgress = async function(userID) {
+  const list = await userChecklists.findOne({ userID, checklistID: this._id });
+  const progress = list ? countpercentProgress(list.checkboxes_data) : 0;
+  return progress;
+};
 
 const Checklist = mongoose.model('Checklist', checklistSchema);
 
