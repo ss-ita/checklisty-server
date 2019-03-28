@@ -20,7 +20,6 @@ const createTeam = async (req, res) => {
         team.requested.push(el);
       });
     }
-
     await team.save();
     
     res.status(200).json({ message: 'Team created', team });
