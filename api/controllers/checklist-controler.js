@@ -151,22 +151,12 @@ const getFive = async (req, res) => {
 
 const searchFilter = async (req, res) => {
   try {
-    const search = req.params.filter;
-    let howMuch = (parseInt(req.params.activePage) - 1) * 5;
-
-    const totalItems = Math.ceil(await Checklist.find({
-      "title": { $regex: `${search}`, $options: 'i' },
-      $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
-    }).count() / 5);
-
-    if (howMuch > totalItems) {
-      howMuch = totalItems;
-    }
+    const search = req.params.searchValue;
 
     const checkLists = await Checklist.find({
       "title": { $regex: `${search}`, $options: 'i' },
       $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
-    }).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
+    }).sort({ "creation_date": -1 }).populate('author', 'username');
 
     const result = checkLists.map(doc => {
       return {
@@ -191,7 +181,7 @@ const searchFilter = async (req, res) => {
         })
       }
     });
-    res.status(200).json({ result, totalItems });
+    res.status(200).json(result);
   } catch (error) {
     res.json(error);
   }
@@ -280,6 +270,21 @@ const update = async (req, res) => {
       { $set: { sections_data, title, isPrivate } },
       { new: true }
     );
+    const userChecklistsData = await userChecklists.findOne({
+      userID: list.author,
+      checklistID: list._id
+    })
+    const resetArray = function (array) {
+      // let amount = 0;
+      for (let i = 0; i < array.length; i++) {
+        // amount += array[i].length;
+        for (let j = 0; j < array[i].length; j++) {
+          array[i][j] = false;
+        }
+      }
+    }
+    userChecklistsData.checkboxes_data = resetArray(userChecklistsData.checkboxes_data);
+    await userChecklistsData.save();
 
     if (!list) return res.sendStatus(404);
 
