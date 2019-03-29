@@ -64,10 +64,25 @@ const createCheckListItem = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const checkLists = await Checklist.find(
-      { $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] }
-    ).populate('author', 'username');
-    const totalItems = await Checklist.count({ $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] });
+    let { page = 1, search = '', limit = 5} = req.query;
+    let totalItems;
+    if(search !== ''){
+      totalItems = await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).count();
+    }
+    else{
+      totalItems = await Checklist.find({ $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).count();
+    }
+
+    if (limit > totalItems){
+      page = 1;
+    }
+
+    const checkLists = await Checklist.find({  "title": { $regex: `${search}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]})
+      .sort({ "creation_date": -1 })
+      .skip(Number(limit) * ( page - 1))
+      .limit(Number(limit))
+      .populate('author', 'username');
+
     const result = checkLists.map(doc => {
       return {
         id: doc.id,
@@ -100,7 +115,7 @@ const getAll = async (req, res) => {
 };
 const getFive = async (req, res) => {
 
-  try { 
+  try {
     const limitItemsInPage = parseInt(req.params.itemsInPage);
     const searchValue = req.params.searchValue;
     let howItemsSkip = (parseInt(req.params.activePage) - 1) * limitItemsInPage;
@@ -224,7 +239,7 @@ const searchByAuthor = async (req, res) => {
 const getOne = async (req, res) => {
   try {
     const list = await Checklist.findOne({ slug: req.params.id });
-    if (!list) return res.sendStatus(404);
+    if (!list) return res.sendStatus(404).json({message: "Checklist not found"});
 
     const result = {
       id: list.id,
@@ -236,7 +251,8 @@ const getOne = async (req, res) => {
       sections_data: list.sections_data.map(section => {
         return {
           section_title: section.section_title,
-          items_data: section.items_data
+          items_data: section.items_data,
+          _id: section.id
         }
       })
     };
@@ -274,7 +290,7 @@ const update = async (req, res) => {
       { new: true }
     );
 
-    if (!list) return res.sendStatus(404);
+    if (!list) return res.sendStatus(404).json({ message: 'Checklist not found' });
 
     res.status(200).json({ message: 'List updated', list: list });
 
