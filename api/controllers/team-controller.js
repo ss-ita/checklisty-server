@@ -44,7 +44,6 @@ const createTeam = async (req, res) => {
       });
     }
     await team.save();
-    
     res.status(200).json({ message: 'Team created', team });
   } catch (err) {
     res.json(err.message); 
@@ -62,6 +61,73 @@ const getTeam = async (req, res) => {
     res.status(200).json(team);
   } catch (err) {
     res.json(err.message); 
+  }
+};
+
+const getTeams = async (req, res) => {
+  try {
+    const { id } = req.userData;
+    let { page = 1, search = '', limit = 5 } = req.query;
+    if (!id) return res.status(422).json({ message: 'User not found' });
+
+
+    let totalTeams;
+    if(search !== ''){
+      totalTeams = await Team.find({ 'name': {$regex: `${search}`, $options: 'i'}})
+        .where('members')
+        .in(id)
+        .count();
+      if(limit > totalTeams){
+        page = 1;
+      }
+    }
+    else {
+      totalTeams = await Team.find({ 'members': id }).count();
+    }  
+
+    const teams = await Team.find({ 'name': {$regex: `${search}`, $options: 'i'}})
+      .where('members')
+      .in(id)
+      .sort({"_id": -1})
+      .skip(Number(limit) * ( page - 1))
+      .limit(Number(limit))
+      .populate({ path: 'creator', select: 'username' });
+   
+    if (!teams) return res.status(404).json({ message: 'Team not founded' });
+    
+    res.status(200).json({teams, totalTeams});
+  } catch (err) {
+    res.json(err.message); 
+  }
+};
+
+const inviteMembers = async (req, res) => {
+  try {
+    const { teamId, url } = req.body;
+
+    let team = await Team.findOne({ _id: teamId }).select('name creator requested')
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+
+    const inviting = await User.findById(team.creator).select('username');
+
+    team.requested.map(async id => {
+      const invited = await User.findById(id).select('username email');
+
+      const inviteToken = team.generateTeamToken(id);
+      
+      sendEmail({ emailGenerator: inviteUserToTeam, 
+        userEmail: invited.email, 
+        userName: invited.username,
+        subjectOption: `You invited to team ${team.name}`,
+        team,
+        inviting: inviting.username,
+        url: url + inviteToken,
+        invited: invited.username});      
+    });
+
+    res.status(200).json({ message: 'Users invited' });
+  } catch(err) {
+    res.json(err.message);
   }
 };
 
@@ -122,6 +188,16 @@ const joinTeam = async (req, res) => {
   }
 };
 
+const searchUsers = async (req, res) => {
+  try{
+    const seachUserValue = req.params.searchUser;
+    const getSearchUsers = await User.find({ "username": {$regex: `${seachUserValue}`, $options: 'i'} });
+    return res.status(200).json(getSearchUsers);
+  } catch (err) {
+    return res.sendStatus(500);
+  }
+}
+
 const deleteMember = async (req, res) => {
   try {
     const { id: acting } = req.userData;
@@ -164,4 +240,4 @@ const deleteTeam = async (req, res) => {
 }
 
 module.exports = { createTeam, getTeam,
-  inviteMember, joinTeam, deleteMember, deleteTeam };
+  inviteMember, inviteMembers, joinTeam, deleteMember, deleteTeam, getTeams, searchUsers };

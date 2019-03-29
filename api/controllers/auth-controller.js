@@ -42,7 +42,7 @@ const signIn = async (req, res) => {
     if (!email || !password) {
       return res.status(422).json({ message: 'Email and password are required!' });
     }
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate('team', 'name');
     if (!user) return res.status(400).json({ message: 'Invalid email or password!' });
 
     const validPassword = await bcrypt.compareSync(password, user.password);
