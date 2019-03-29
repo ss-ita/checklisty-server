@@ -16,13 +16,12 @@ const createTeam = async (req, res) => {
     const team = await new Team({ creator, name, members: [creator] });
 
     if (requested) {
-      requested.split(',').map(el => {
+      requested.map(el => {
         team.requested.push(el);
       });
     }
 
     await team.save();
-    
     res.status(200).json({ message: 'Team created', team });
   } catch (err) {
     res.json(err.message); 
@@ -38,6 +37,43 @@ const getTeam = async (req, res) => {
     if (!team) return res.status(404).json({ message: 'Team not founded' });
     
     res.status(200).json(team);
+  } catch (err) {
+    res.json(err.message); 
+  }
+};
+
+const getTeams = async (req, res) => {
+  try {
+    const { id } = req.userData;
+    let { page = 1, search = '', limit = 5 } = req.query;
+    if (!id) return res.status(422).json({ message: 'User not found' });
+
+
+    let totalTeams;
+    if(search !== ''){
+      totalTeams = await Team.find({ 'name': {$regex: `${search}`, $options: 'i'}})
+        .where('members')
+        .in(id)
+        .count();
+      if(limit > totalTeams){
+        page = 1;
+      }
+    }
+    else {
+      totalTeams = await Team.find({ 'members': id }).count();
+    }  
+
+    const teams = await Team.find({ 'name': {$regex: `${search}`, $options: 'i'}})
+      .where('members')
+      .in(id)
+      .sort({"_id": -1})
+      .skip(Number(limit) * ( page - 1))
+      .limit(Number(limit))
+      .populate({ path: 'creator', select: 'username' });
+   
+    if (!teams) return res.status(404).json({ message: 'Team not founded' });
+    
+    res.status(200).json({teams, totalTeams});
   } catch (err) {
     res.json(err.message); 
   }
@@ -142,4 +178,14 @@ const joinTeam = async (req, res) => {
   }
 };
 
-module.exports = { createTeam, getTeam, inviteMembers, inviteMember, joinTeam };
+const searchUsers = async (req, res) => {
+  try{
+    const seachUserValue = req.params.searchUser;
+    const getSearchUsers = await User.find({ "username": {$regex: `${seachUserValue}`, $options: 'i'} });
+    return res.status(200).json(getSearchUsers);
+  } catch (err) {
+    return res.sendStatus(500);
+  }
+}
+
+module.exports = { createTeam, getTeam, inviteMembers, inviteMember, joinTeam, getTeams, searchUsers };

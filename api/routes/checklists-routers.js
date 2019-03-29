@@ -8,7 +8,7 @@ const slugController = require('../controllers/slug-controller');
 const authCheck = require('../middlewares/auth-check');
 
 router.get('/', checklistControler.getAll);
-router.get('/page=:activePage/search=:searchValue/limit=:itemsInPage', checklistControler.getFive);
+router.get('/?page=:activePage&search=:searchValue&limit=:itemsInPage', checklistControler.getFive);
 router.get('/author=:id', checklistControler.searchByAuthor);
 router.get('/:id', checklistControler.getOne);
 router.post('/create', authCheck, checklistControler.createCheckList);
