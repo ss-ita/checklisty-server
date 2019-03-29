@@ -12,7 +12,6 @@ router.delete('/:id', teamController.deleteTeam);
 router.delete('/deletemember/:id', teamController.deleteMember);
 
 router.get('/chat/:id', messageController.getAllMessages);
-router.post('/chat/:id', messageController.sendMessage);
 router.put('/chat/:id', messageController.editMessage);
 router.delete('/chat/:id', messageController.deleteMessage);
 
