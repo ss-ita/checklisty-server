@@ -41,30 +41,27 @@ const blockedOrDeletedEmail = (emailData) => {
 };
 
 const inviteUserToTeam = (emailData) => {
-  const { team, inviting, userName, url } = emailData;
+  const { team, inviting, userName, url, baseURL } = emailData;
 
   return (
     `<div>
       <h1>Hello, ${userName}!</h1>
-      <hr />
-      <h3>You are receiving this because you have been requested to team ${team.name} by ${inviting}.</h3>
-      <hr />
-      <h3>Please click on the following link to complete the process</h3>
+      <h3>You was invited to team ${team.name} by ${inviting}.</h3>
         <h3 style="display:flex; justify-content: center; margin: 15px auto;">
-        <a href=${url} 
-        style="
-        background-color: #3474db;
-        color: white;
-        padding: 15px 30px;
-        text-align: center;
-        text-decoration: none;
-        border-radius: 5px;
-        ">
-        Click here to accept request!
-        </a>
+          <a href=${url} 
+            style="
+              background-color: #3474db;
+              color: white;
+              padding: 15px 30px;
+              text-align: center;
+              text-decoration: none;
+              border-radius: 5px;"
+          >
+            Please click here to join team!
+          </a>
         </h3>
-        <hr />
         <h4>If you did not want to join a team, just ignore this email.\n</h4>
+        <h4>With best regards, administartion of <a href=${baseURL}>Checklisty.\n</a></h4>
      </div>`
   )
 }
