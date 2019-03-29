@@ -224,7 +224,7 @@ const searchByAuthor = async (req, res) => {
 const getOne = async (req, res) => {
   try {
     const list = await Checklist.findOne({ slug: req.params.id });
-    if (!list) return res.sendStatus(404);
+    if (!list) return res.sendStatus(404).json({message: "Checklist not found"});
 
     const result = {
       id: list.id,
@@ -236,7 +236,8 @@ const getOne = async (req, res) => {
       sections_data: list.sections_data.map(section => {
         return {
           section_title: section.section_title,
-          items_data: section.items_data
+          items_data: section.items_data,
+          _id: section.id
         }
       })
     };
@@ -274,7 +275,7 @@ const update = async (req, res) => {
       { new: true }
     );
 
-    if (!list) return res.sendStatus(404);
+    if (!list) return res.sendStatus(404).json({ message: 'Checklist not found' });
 
     res.status(200).json({ message: 'List updated', list: list });
 
