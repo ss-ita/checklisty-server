@@ -19,13 +19,13 @@ const signUp = async (req, res) => {
     if (user)
       return res
         .status(422)
-        .json({ username: 'User with this username is already exist!' });
+        .json({ message: 'User with this username is already exist!' });
 
     user = await User.findOne({ email });
     if (user)
       return res
         .status(422)
-        .json({ email: 'User with this email is already exist!' });
+        .json({ message: 'User with this email is already exist!' });
 
     user = new User({ firstname, lastname, username, email, password });
 
