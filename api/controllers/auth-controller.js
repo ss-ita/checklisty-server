@@ -7,8 +7,7 @@ const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 const signUp = async (req, res) => {
   try {
     const { error } = validate(req.body);
-    if (error)
-      return res.status(400).json({ message: error.details[0].message });
+    if (error) return res.status(400).json({ message: error.details[0].message });
 
     const { firstname, lastname, username, email, password } = req.body;
     if (!email || !password || !username || !firstname || !lastname) {
@@ -16,16 +15,10 @@ const signUp = async (req, res) => {
     }
 
     let user = await User.findOne({ username });
-    if (user)
-      return res
-        .status(422)
-        .json({ message: 'User with this username is already exist!' });
+    if (user) return res.status(422).json({ message: 'User with this username is already exist!' });
 
     user = await User.findOne({ email });
-    if (user)
-      return res
-        .status(422)
-        .json({ message: 'User with this email is already exist!' });
+    if (user) return res.status(422).json({ message: 'User with this email is already exist!' });
 
     user = new User({ firstname, lastname, username, email, password });
 
@@ -49,27 +42,19 @@ const signUp = async (req, res) => {
 const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res
-        .status(422)
-        .json({ message: 'Email and password are required!' });
-    }
-    const user = await User.findOne({ email }).populate('team', 'name');
-    if (!user)
-      return res.status(400).json({ message: 'Invalid email or password!' });
+    if (!email || !password) return res.status(422).json({ message: 'Email and password are required!' });
+    let user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ message: 'Invalid email or password!' });
 
     const validPassword = await bcrypt.compareSync(password, user.password);
-    if (!validPassword)
-      return res.status(400).json({ message: 'Invalid email or password!' });
+    if (!validPassword) return res.status(400).json({ message: 'Invalid email or password!' });
 
     if (user.isBlocked)
-      return res
-        .status(403)
-        .json({ message: 'You can not login because you are blocked!' });
+      return res.status(403).json({ message: 'You can not login because you are blocked!' });
 
     user.password = '';
-
     const token = user.generateAuthToken();
+    
     res
       .header('access-token', token)
       .status(200)

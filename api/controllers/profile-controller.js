@@ -17,14 +17,10 @@ const updateProfile = async (req, res) => {
         delete userParams[key];
       }
     });
-    if (!Object.keys(userParams).length)
-      return res.status(409).json({
-        message: 'Nothing have changed!'
-      });
+    if (!Object.keys(userParams).length) return res.status(409).json({ message: 'Nothing have changed!' });
 
     const { error } = validate(userParams);
-    if (error)
-      return res.status(400).json({ message: error.details[0].message });
+    if (error) return res.status(400).json({ message: error.details[0].message });
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -36,8 +32,7 @@ const updateProfile = async (req, res) => {
       .status(200)
       .json({ updatedUser, message: 'Name and email changed!' });
   } catch (err) {
-    if (err.name === 'ValidationError') return res.status(409).json(err);
-    else return res.sendStatus(500);
+    return res.sendStatus(500);
   }
 };
 
@@ -48,18 +43,14 @@ const updateUserPassword = async (req, res) => {
     const { newPassword, oldPassword } = req.body;
 
     if (oldPassword === newPassword)
-      return res.status(400).json({
-        message: 'Old and new passwords must be different!'
-      });
+      return res.status(400).json({ message: 'Old and new passwords must be different!' });
 
     const { error } = validate({ password: newPassword });
-    if (error)
-      return res.status(400).json({ message: error.details[0].message });
+    if (error) return res.status(400).json({ message: error.details[0].message });
 
     const validPassword = bcrypt.compareSync(oldPassword, user.password);
-    if (!validPassword)
-      return res.status(400).json({ message: 'Invalid old password!' });
-
+    if (!validPassword) return res.status(400).json({ message: 'Invalid old password!' });
+    
     const salt = bcrypt.genSaltSync(10);
     const setNewPassword = bcrypt.hashSync(newPassword, salt);
 
