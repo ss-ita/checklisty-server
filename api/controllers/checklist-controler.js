@@ -279,7 +279,7 @@ const getOne = async (req, res) => {
 
     return res.status(200).json(result);
   } catch (error) {
-    return res.json(error);
+    res.json(error);
   }
 };
 
