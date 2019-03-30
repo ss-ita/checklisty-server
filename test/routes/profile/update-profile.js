@@ -13,7 +13,7 @@ chai.use(chaiHttp);
 
 const should = chai.should();
 
-describe('Profile', () => {
+describe('Update user profile', () => {
   before(() => {
     sinon.stub(mongoose.Model, 'findById')
       .onFirstCall().throws()
