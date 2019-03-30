@@ -12,23 +12,20 @@ chai.use(chaiHttp);
 
 const should = chai.should();
 
-describe('Authorisation Sign In', () => {
+describe('Sign In', () => {
+  let user;
+  let bcryptStubbed;
   before(() => {
-    sinon.stub(mongoose.Model, 'findOne')
-      .onCall(0).throws({ message: 'Some error' })
-      .onCall(1).returns(null)
-      .onCall(2).returns({})
-      .onCall(3).returns({ password: 'password', generateAuthToken: () => true });
-    sinon.stub(bcrypt, 'compareSync')
-      .onFirstCall().returns(false)
-      .onSecondCall().returns(true)
+    user = sinon.stub(mongoose.Model, 'findOne');
+    bcryptStubbed = sinon.stub(bcrypt, 'compareSync');
   });
 
   after(() => {
-    mongoose.Model.findOne.restore();
-    bcrypt.compareSync.restore();
+    user.restore();
+    bcryptStubbed.restore();
   });
-  it('Shold reject sign in, email and password are required', () => {
+
+  it('Shold reject, email and password are required', () => {
     chai.request(server)
       .post('/api/auth/signin')
       .send({ email: 'email' })
@@ -39,18 +36,21 @@ describe('Authorisation Sign In', () => {
         res.body.message.should.eql('Email and password are required!');
       });
   });
-  it('Should reject with some error', () => {
+  it('Should reject, not valid data', () => {
+    user.returns(null);
     chai.request(server)
       .post('/api/auth/signin')
       .send({ username: 'JonhDoe', email: 'JonhDoe@email.com', password: '123456' })
       .end((err, res) => {
-        res.should.have.status(500);
+        res.should.have.status(400);
         res.body.should.be.a('object');
         res.body.should.have.property('message');
-        res.body.message.should.eql('Some error');
+        res.body.message.should.eql('Invalid email or password!');
       });
   });
-  it('Shold reject sign in, invalid email or password.', () => {
+  it('Shold reject sign in bcrypt not valid.', () => {
+    user.returns({ email: 'email', password: 'password' });
+    bcryptStubbed.returns(false);
     chai.request(server)
       .post('/api/auth/signin')
       .send({ email: 'email', password: 'password' })
@@ -61,18 +61,22 @@ describe('Authorisation Sign In', () => {
         res.body.message.should.eql('Invalid email or password!');
       });
   });
-  it('Shold reject sign in in bcrypt, invalid email or password.', () => {
+  it('Shold reject, user is blocked', () => {
+    user.returns({ email: 'email', password: 'password', isBlocked: true });
+    bcryptStubbed.returns(true);
     chai.request(server)
       .post('/api/auth/signin')
       .send({ email: 'email', password: 'password' })
       .end((err, res) => {
-        res.should.have.status(400);
+        res.should.have.status(403);
         res.body.should.be.a('object');
         res.body.should.have.property('message');
-        res.body.message.should.eql('Invalid email or password!');
+        res.body.message.should.eql('You can not login because you are blocked!');
       });
   });
   it('Shold sign in', () => {
+    user.returns({ email: 'email', password: 'password', generateAuthToken: () => true  });
+    bcryptStubbed.returns(true);
     chai.request(server)
       .post('/api/auth/signin')
       .send({ email: 'email', password: 'password' })
