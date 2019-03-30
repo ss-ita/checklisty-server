@@ -277,10 +277,9 @@ const getOne = async (req, res) => {
       })
     };
 
-    res.status(200).json(result);
-
+    return res.status(200).json(result);
   } catch (error) {
-    res.json(error);
+    return res.json(error);
   }
 };
 

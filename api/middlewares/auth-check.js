@@ -15,6 +15,6 @@ module.exports = async (req, res, next) => {
       return next();
     } else return res.status(401).json({ message: 'Access token is absent!' });
   } catch (err) {
-    return res.sendStatus(500);
+    return res.status(500).json({ message: 'Something go wrong' });
   }
 }

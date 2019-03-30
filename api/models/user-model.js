@@ -8,57 +8,19 @@ const maxLength = 50;
 
 const userSchema = new mongoose.Schema(
   {
-    firstname: {
-      type: String,
-      required: true,
-      maxlength: maxLength
-    },
-    lastname: {
-      type: String,
-      required: true,
-      maxlength: maxLength
-    },
-    username: {
-      type: String,
-      required: true,
-      maxlength: maxLength,
-      unique: true
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true
-    },
-    password: {
-      type: String
-    },
-    googleId: {
-      type: String
-    },
-    facebookId: {
-      type: String
-    },
-    githubId: {
-      type: String
-    },
-    team: {
-      type: String
-    },
-    location: {
-      type: String
-    },
-    image: {
-      type: String
-    },
-    role: {
-      type: String,
-      enum: ['admin', 'moderator', 'user'],
-      default: 'user'
-    },
-    isBlocked: {
-      type: Boolean,
-      default: false
-    }
+    firstname: { type: String, required: true, maxlength: maxLength },
+    lastname: { type: String, required: true, maxlength: maxLength },
+    username: { type: String, required: true, maxlength: maxLength, unique: true },
+    email: { type: String, required: true, unique: true },
+    password: String,
+    googleId: String,
+    facebookId: String,
+    githubId: String,
+    team: String,
+    location: String,
+    image: String,
+    role: { type: String, enum: ['admin', 'moderator', 'user'], default: 'user'},
+    isBlocked: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
@@ -82,18 +44,21 @@ const validate = user => {
   const schema = {
     firstname: Joi.string()
       .max(maxLength)
-      .regex(/^[a-zA-Z ]*$/),
+      .regex(/^[a-zA-Z ]*$/)
+      .required(),
     lastname: Joi.string()
       .max(maxLength)
-      .regex(/^[a-zA-Z ]*$/),
+      .regex(/^[a-zA-Z ]*$/)
+      .required(),
     username: Joi.string()
       .max(maxLength)
-      .regex(/^[a-zA-Z0-9_]*$/),
+      .regex(/^[a-zA-Z0-9_]*$/)
+      .required(),
     email: Joi.string().email(),
     password: Joi.string()
       .min(minLength)
       .regex(/^[\w[\]!#$%&'*+\-/=?^`{|}~|\s]*$/)
-      .max(128)
+      .max(128),
   };
   return Joi.validate(user, schema);
 };
