@@ -1,4 +1,4 @@
-const userChecklists = require('../models/users-checklists')
+const userChecklists = require('../models/checklists/users-checklists')
 
 const createUserChecklistCollection = async (req, res) => {
   try {

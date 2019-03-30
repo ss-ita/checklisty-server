@@ -1,8 +1,8 @@
-const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const sendEmail = require('../utils/send-email');
 const { User } = require('../models/user-model');
-const emailGenerate = require('./email-generator')
+const { forgotPasswordEmail } = require('../utils/email-generator');
 
 const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 
@@ -16,29 +16,16 @@ const forgotPassword = async (req, res) => {
 
     if (!user) return res.status(400).json({ message: 'User with this email doesn\'t exists.' });
     if (!user.password) return res.status(400).json({ message: 'This user has no password. Try to sign in with social which you have used for registration' })
+    if (user.isBlocked) return res.status(403).json({ message: 'You can not reset your password because you are blocked!' });
 
     const token = user.generateAuthToken('10m');
 
     const resetPasswordURL = `${baseURL}/auth/reset-password/?recovery-token=${token}`;
 
-    const smtpTransport = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.USER_EMAIL,
-        pass: process.env.USER_PASSWORD
-      }
-    });
+    sendEmail({ emailGenerator: forgotPasswordEmail, userEmail: email, subjectOption: 'Password reset for Checklisty',
+      username: user.username, resetPasswordURL });
 
-    const mailOptions = {
-      to: email,
-      from: 'lv379nodejs@gmail.com',
-      subject: 'Password reset for Checklisty',
-      html: emailGenerate(user.username, resetPasswordURL)
-    };
-
-    await smtpTransport.sendMail(mailOptions, () => {
-      return res.status(200).send('Email has been sent with further instructions');
-    });
+    return res.status(200).send('Email has been sent with further instructions');
 
   } catch (err) {
     res.status(500).json(err);

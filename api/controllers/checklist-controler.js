@@ -1,9 +1,8 @@
-/* eslint-disable node/no-unsupported-features/es-syntax */
-const { Checklist, validateChecklist } = require('../models/checklist-model');
-const userChecklists = require('../models/users-checklists');
+const { Checklist, validateChecklist } = require('../models/checklists/checklist-model');
+const { User } = require('../models/user-model');
+const userChecklists = require('../models//checklists/users-checklists');
 
 const createCheckList = async (req, res) => {
-
   try {
     if (Object.keys(req.body).length) {
       req.body.sections_data.map((section) => {
@@ -38,7 +37,6 @@ const createCheckList = async (req, res) => {
 };
 
 const createCheckListItem = async (req, res) => {
-
   try {
     const { item_title, description, details, tags, priority } = req.body;
 
@@ -66,10 +64,25 @@ const createCheckListItem = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const checkLists = await Checklist.find(
-      { $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] }
-    ).populate('author', 'username');
-    const totalItems = await Checklist.count({ $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] });
+    let { page = 1, search = '', limit = 5} = req.query;
+    let totalItems;
+    if(search !== ''){
+      totalItems = await Checklist.find({ "title": { $regex: `${search}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).count();
+    }
+    else{
+      totalItems = await Checklist.find({ $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).count();
+    }
+
+    if (limit > totalItems){
+      page = 1;
+    }
+
+    const checkLists = await Checklist.find({  "title": { $regex: `${search}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]})
+      .sort({ "creation_date": -1 })
+      .skip(Number(limit) * ( page - 1))
+      .limit(Number(limit))
+      .populate('author', 'username');
+
     const result = checkLists.map(doc => {
       return {
         id: doc.id,
@@ -101,12 +114,25 @@ const getAll = async (req, res) => {
   }
 };
 const getFive = async (req, res) => {
+
   try {
-    const howMuch = (parseInt(req.params.activePage) - 1) * 5;
-    const checkLists = await Checklist.find(
-      { $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }] }
-    ).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
-    const totalItems = Math.ceil(await Checklist.count() / 5);
+    const limitItemsInPage = parseInt(req.params.itemsInPage);
+    const searchValue = req.params.searchValue;
+    let howItemsSkip = (parseInt(req.params.activePage) - 1) * limitItemsInPage;
+    let checkLists = null;
+    let totalItems = null;
+    if(searchValue === 'undefined'){
+      totalItems = await Checklist.find({ $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).count();
+      if (req.params.activePage > totalItems) {
+        howItemsSkip = 0;
+      }
+      checkLists = await Checklist.find({ $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).sort({ "creation_date": -1 }).skip(howItemsSkip).limit(limitItemsInPage).populate('author', 'username');
+    }
+    else {
+      howItemsSkip = 0;
+      totalItems = Math.ceil(await Checklist.find({ "title": { $regex: `${searchValue}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).count());
+      checkLists = await Checklist.find({  "title": { $regex: `${searchValue}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]}).sort({ "creation_date": -1 }).skip(howItemsSkip).limit(limitItemsInPage).populate('author', 'username');
+    }
     const result = checkLists.map(doc => {
       return {
         id: doc.id,
@@ -131,7 +157,7 @@ const getFive = async (req, res) => {
       }
     });
 
-    res.status(200).json({ result, totalItems });
+    res.status(200).json({result, totalItems});
 
   } catch (error) {
     res.json(error);
@@ -142,21 +168,20 @@ const searchFilter = async (req, res) => {
   try {
     const search = req.params.filter;
     let howMuch = (parseInt(req.params.activePage) - 1) * 5;
-    const totalItems = Math.ceil(await Checklist.find(
-      {
-        "title": { $regex: `${search}`, $options: 'i' },
-        $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
-      }
-    ).count() / 5);
+
+    const totalItems = Math.ceil(await Checklist.find({
+      "title": { $regex: `${search}`, $options: 'i' },
+      $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
+    }).count() / 5);
+
     if (howMuch > totalItems) {
       howMuch = totalItems;
     }
-    const checkLists = await Checklist.find(
-      {
-        "title": { $regex: `${search}`, $options: 'i' },
-        $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
-      }
-    ).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
+
+    const checkLists = await Checklist.find({
+      "title": { $regex: `${search}`, $options: 'i' },
+      $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
+    }).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
 
     const result = checkLists.map(doc => {
       return {
@@ -190,53 +215,31 @@ const searchFilter = async (req, res) => {
 const searchByAuthor = async (req, res) => {
   try {
     const author = req.params.id;
-    const lists = await Checklist.find({ author });
-
-    const result = lists.map(doc => {
-      return {
+    const lists = await Checklist.find({ author }).sort({ "creation_date": -1 }).select('');
+    let result =  await Promise.all(lists.map(async doc => {
+      const progress = await doc.getProgress(author);
+      const res =  {
         id: doc.id,
         title: doc.title,
         slug: doc.slug,
-        tags: doc.sections_data.map(data => {
-          const tags = [];
-          data.items_data.map(el => {
-            el.tags.map(item => {
-              if (!tags.includes(item)) {
-                tags.push(item);
-              }
-            })
-          });
-          return tags;
-        }),
+        isPrivate: doc.isPrivate,
+        tags: doc.getTags(),
+        progress,
         creation_date: doc.creation_date,
-        sections_data: doc.sections_data.map(section => {
-          return {
-            section_title: section.section_title,
-            items_data: section.items_data.map(item => {
-              return {
-                item_title: item.item_title,
-                description: item.description,
-                details: item.details,
-                tags: item.tags,
-                priority: item.priority,
-              }
-            })
-          }
-        })
-      }
-    });
+      };
+      return res;
+    }));
 
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
     res.json(error.message);
   }
 }
 
 const getOne = async (req, res) => {
-
   try {
     const list = await Checklist.findOne({ slug: req.params.id });
-    if (!list) return res.sendStatus(404);
+    if (!list) return res.sendStatus(404).json({message: "Checklist not found"});
 
     const result = {
       id: list.id,
@@ -248,7 +251,8 @@ const getOne = async (req, res) => {
       sections_data: list.sections_data.map(section => {
         return {
           section_title: section.section_title,
-          items_data: section.items_data
+          items_data: section.items_data,
+          _id: section.id
         }
       })
     };
@@ -261,9 +265,15 @@ const getOne = async (req, res) => {
 };
 
 const update = async (req, res) => {
-
   try {
     const { title, sections_data, isPrivate } = req.body;
+
+    const operatingUser = await User.findById(req.userData.id);
+    const checkListCheck = await Checklist.findOne({ slug: req.params.id });
+    
+    if (String(checkListCheck.author) !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator')) {
+      return res.status(403).json({ message: 'Access denied!' });
+    }
 
     if (Object.keys(req.body).length) {
       req.body.sections_data.map((section) => {
@@ -280,7 +290,7 @@ const update = async (req, res) => {
       { new: true }
     );
 
-    if (!list) return res.sendStatus(404);
+    if (!list) return res.sendStatus(404).json({ message: 'Checklist not found' });
 
     res.status(200).json({ message: 'List updated', list: list });
 
@@ -291,6 +301,11 @@ const update = async (req, res) => {
 
 const deleteList = async (req, res) => {
   try {
+    const checkListCheck = await Checklist.findById(req.params.id);
+    const operatingUser = await User.findById(req.userData.id);
+    if (checkListCheck.author !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator')) {
+      return res.status(403).json({ message: 'Access denied!' });
+    }
     const deletedList = await Checklist.findByIdAndDelete(req.params.id);
     await userChecklists.find({ checklistID: req.params.id }).remove();
     if (deletedList) {

@@ -1,4 +1,4 @@
-const userChecklists = require('../models/users-checklists')
+const userChecklists = require('../models/checklists/users-checklists')
 
 const countpercentProgress = (array) => {
   let counter = 0, amount = 0;
@@ -54,4 +54,5 @@ const deleteHistoryOfViewedLists = async (req, res) => {
 module.exports = {
   getViewedChecklists,
   deleteHistoryOfViewedLists,
+  countpercentProgress
 };
