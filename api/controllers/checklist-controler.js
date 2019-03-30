@@ -1,9 +1,24 @@
 const { Checklist, validateChecklist } = require('../models/checklists/checklist-model');
 const { User } = require('../models/user-model');
+const { Team } = require('../models/team/team-model');
 const userChecklists = require('../models//checklists/users-checklists');
 
 const createCheckList = async (req, res) => {
   try {
+    const { teamId } = req.body;
+    delete req.body.teamId;
+
+    if (teamId) {
+      const userTeam = await Team.findById(teamId);
+      const userInTeamCheck = userTeam.members.find((item) => {
+        return String(item) === req.userData.id;
+      });
+
+      if(!userInTeamCheck) {
+        return res.status(403).json({ message: 'You can not create checklist for the team you are not member of!' });
+      }
+    }
+
     if (Object.keys(req.body).length) {
       req.body.sections_data.map((section) => {
         delete section._id;
@@ -28,11 +43,16 @@ const createCheckList = async (req, res) => {
       sections_data
     })
 
-    const list = await newList.save()
-    res.status(201).json(list);
+    const list = await newList.save();
+
+    if (teamId) {
+      await Team.findByIdAndUpdate(teamId, { $push: { checklists: list._id } });
+    }
+
+    return res.status(201).json(list);
 
   } catch (error) {
-    res.status(500).json(error.message);
+    return res.status(500).json(error.message);
   }
 };
 
@@ -259,18 +279,27 @@ const getOne = async (req, res) => {
 
     return res.status(200).json(result);
   } catch (error) {
-    return res.json(error);
+    res.json(error);
   }
 };
 
 const update = async (req, res) => {
   try {
-    const { title, sections_data, isPrivate } = req.body;
+    const { title, sections_data, isPrivate, teamId } = req.body;
 
     const operatingUser = await User.findById(req.userData.id);
+    let userInTeamCheck = null;
+    
+    if (teamId) {
+      const userTeam = await Team.findById(teamId);
+      userInTeamCheck = userTeam.members.find((item) => {
+        return String(item) === req.userData.id;
+      });
+    }
+
     const checkListCheck = await Checklist.findOne({ slug: req.params.id });
     
-    if (String(checkListCheck.author) !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator')) {
+    if (String(checkListCheck.author) !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator') && userInTeamCheck === null ? true : userInTeamCheck === undefined ? true : false ) {
       return res.status(403).json({ message: 'Access denied!' });
     }
 
@@ -300,13 +329,27 @@ const update = async (req, res) => {
 
 const deleteList = async (req, res) => {
   try {
-    const checkListCheck = await Checklist.findById(req.params.id);
+    const checklist = await Checklist.findById(req.params.id);
     const operatingUser = await User.findById(req.userData.id);
-    if (checkListCheck.author !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator')) {
+    const { teamId } = req.query;
+    let userInTeamCheck = null;
+    
+    if (teamId) {
+      const userTeam = await Team.findById(teamId);
+      userInTeamCheck = userTeam.members.find((item) => {
+        return String(item) === req.userData.id;
+      });
+    }
+
+    if (String(checklist.author) !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator') && userInTeamCheck === null ? true : userInTeamCheck === undefined ? true : false) {
       return res.status(403).json({ message: 'Access denied!' });
     }
-    const deletedList = await Checklist.findByIdAndDelete(req.params.id);
-    await userChecklists.find({ checklistID: req.params.id }).remove();
+
+    const deletedList = await Checklist.findByIdAndDelete(checklist._id);
+    
+    await userChecklists.find({ checklistID: checklist._id }).remove();
+    if (teamId) await Team.findByIdAndUpdate(teamId, { $pull: { checklists: deletedList._id } });
+
     if (deletedList) {
       res.status(200).json({ message: `Deleted list: ${deletedList.title}` });
     } else res.sendStatus(404);

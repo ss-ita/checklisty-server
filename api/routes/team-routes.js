@@ -9,6 +9,7 @@ router.get('/searchUsers/searchUsers=:searchUser', teamController.searchUsers);
 router.get('/team/:id', teamController.getTeam);
 router.get('/myteams', teamController.getTeams);
 router.get('/join/:token', teamController.joinTeam);
+router.get('/:id/checklists', teamController.getTeamChecklists);
 router.post('/', teamController.createTeam);
 router.post('/invite', teamController.inviteMember);
 router.delete('/:id', teamController.deleteTeam);
