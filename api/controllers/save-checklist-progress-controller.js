@@ -36,7 +36,32 @@ const setCheckboxesData = async (req, res) => {
   }
 }
 
+const createTeamChecklistCollection = async (req, res) => {
+  try {
+    const { teamID, checklistID, checkboxes_data, checklistData } = req.body;
+
+    const result = await userChecklists.findOne({ teamID: teamID, checklistID: checklistID });
+    
+    if (result) {
+      return res.status(200).json(result);
+    } else {
+      const usersChecklists = await new userChecklists({
+        teamID: teamID,
+        teamLog: null,
+        checklistID: checklistID,
+        checklistData: checklistData,
+        checkboxes_data: checkboxes_data
+      }).save();
+      return res.json(usersChecklists);
+    }
+  }
+  catch (error) {
+    res.status(500);
+  }
+}
+
 module.exports = {
   setCheckboxesData,
   createUserChecklistCollection,
+  createTeamChecklistCollection,
 };
