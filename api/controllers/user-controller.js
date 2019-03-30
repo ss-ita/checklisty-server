@@ -57,8 +57,6 @@ const getUsers = async (req, res) => {
 
     const totalUsers = await User.count({ [searchQuery]: { $regex: `${search}`, $options: 'i' } });
 
-    if (totalUsers === 0) return res.status(404).json({ message: 'Users not found!' });
-
     if (perPage > totalUsers) {
       perPage = totalUsers;
       page = 1;
