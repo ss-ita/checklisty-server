@@ -1,37 +1,23 @@
-const socket = require('socket.io');
+// const socket = require('socket.io');
 const { Message } = require('../models/team/message-model');
-const { Team } = require('../models/team/team-model');
 
-const chatConnect = async (server) => {
-  const io = socket(server);
-  const chatSpace = io.of('/team-chat');
-  const teamsIDs = await getTeamsIDs();
+const chatConnect = (socket, io) => {
+  let teamRoom;
 
-  chatSpace.on('connection', (socket) => {
+  socket.on('joinRoom', room => {
+    teamRoom = room;
+    socket.join(room);
+  })
 
-    socket.on('joinRoom', (messageData, teamRoom) => {
-      if (teamsIDs.includes(teamRoom)) {
-        socket.join(teamRoom)
+  socket.on('message', data => {
+    saveMessage(data);
+    io.sockets.in(teamRoom).emit('message', data);
+  })
 
-        saveMessage(messageData);
-
-        return chatSpace.emit('message', messageData);
-      }
-    });
-
-    socket.on('typing', user => {
-      socket.broadcast.emit('typing', user)
-    });
-  });
-}
-
-const getTeamsIDs = async () => {
-  let teamsIDs = await Team.find().select('_id');
-
-  teamsIDs = teamsIDs.map(el => el._id.toString());
-
-  return teamsIDs;
-}
+  socket.on('typing', typedUser => {
+    socket.broadcast.to(teamRoom).emit('typing', typedUser)
+  })
+};
 
 const saveMessage = async messageData => {
   const { username, avatar, message, teamId } = messageData;
