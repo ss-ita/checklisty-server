@@ -6,6 +6,7 @@ const router = new express.Router();
 
 router.get('/team/:id', teamController.getTeam);
 router.get('/join/:token', teamController.joinTeam);
+router.get('/:id/checklists', teamController.getTeamChecklists);
 router.post('/', teamController.createTeam);
 router.post('/invite', teamController.inviteMembers);
 router.post('/inviteOne', teamController.inviteMember);

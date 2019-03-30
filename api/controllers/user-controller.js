@@ -57,6 +57,8 @@ const getUsers = async (req, res) => {
 
     const totalUsers = await User.count({ [searchQuery]: { $regex: `${search}`, $options: 'i' } });
 
+    if (totalUsers === 0) return res.status(404).json({ message: 'Users not found!' });
+
     if (perPage > totalUsers) {
       perPage = totalUsers;
       page = 1;
@@ -70,7 +72,12 @@ const getUsers = async (req, res) => {
 
     const usersPerPage = await User.find(
       { [searchQuery]: { $regex: `${search}`, $options: 'i' } }
-    ).collation({ locale: 'en'}).select('-password').sort({ [sortQuery]: order }).skip(Number(perPage) * ( page - 1 )).limit(Number(perPage));
+    )
+      .collation({ locale: 'en'})
+      .select('-password')
+      .sort({ [sortQuery]: order })
+      .skip(Number(perPage) * ( page - 1 ))
+      .limit(Number(perPage));
 
     return res.status(200).json({ usersPerPage, totalPages }); 
   } catch (err) {
