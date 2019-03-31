@@ -9,9 +9,9 @@ const teamLogConnect = (socket, io) => {
 
 const saveLogMessage = async data => {
   const result = await userChecklists.findById(data.id);
-  result.checkboxes_data = data.arrayValues;
+  result.checkboxes_data = data.arrayOfCheckboxArray;
   result.teamLog = data.messages;
-  await result.save();
+  result.save();
 }
 
 module.exports = {
