@@ -49,7 +49,7 @@ describe('Middleware, auth check', () => {
       .get('/api/profile/')
       .set('access-token', 'token')
       .end((err, res) => {
-        res.should.have.status(403);
+        res.should.have.status(401);
         res.body.should.have.property('message');
         res.body.message.should.eql('You are blocked!');
       });
