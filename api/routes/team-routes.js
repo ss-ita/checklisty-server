@@ -10,6 +10,7 @@ router.get('/team/:id', teamController.getTeam);
 router.get('/myteams', teamController.getTeams);
 router.get('/join/:token', teamController.joinTeam);
 router.get('/:id/checklists', teamController.getTeamChecklists);
+router.get('/:id/members', teamController.getTeamUsers);
 router.post('/', teamController.createTeam);
 router.post('/invite', teamController.inviteMember);
 router.delete('/:id', teamController.deleteTeam);
