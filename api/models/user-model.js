@@ -44,16 +44,13 @@ const validate = user => {
   const schema = {
     firstname: Joi.string()
       .max(maxLength)
-      .regex(/^[a-zA-Z ]*$/)
-      .required(),
+      .regex(/^[a-zA-Z ]*$/),
     lastname: Joi.string()
       .max(maxLength)
-      .regex(/^[a-zA-Z ]*$/)
-      .required(),
+      .regex(/^[a-zA-Z ]*$/),
     username: Joi.string()
       .max(maxLength)
-      .regex(/^[a-zA-Z0-9_]*$/)
-      .required(),
+      .regex(/^[a-zA-Z0-9_]*$/),
     email: Joi.string().email(),
     password: Joi.string()
       .min(minLength)
