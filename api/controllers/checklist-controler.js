@@ -8,18 +8,25 @@ const createCheckList = async (req, res) => {
     const { teamId } = req.body;
     delete req.body.teamId;
 
+    console.log("1")
+
     if (teamId) {
       const userTeam = await Team.findById(teamId);
+      console.log("2")
       const userInTeamCheck = userTeam.members.find((item) => {
         return String(item) === req.userData.id;
       });
+      console.log("3")
 
       if(!userInTeamCheck) {
+        console.log("4")
         return res.status(403).json({ message: 'You can not create checklist for the team you are not member of!' });
       }
     }
 
+    console.log("5")
     if (Object.keys(req.body).length) {
+      console.log("6")
       req.body.sections_data.map((section) => {
         delete section._id;
         return (
@@ -28,13 +35,18 @@ const createCheckList = async (req, res) => {
       });
     }
 
+    console.log("7")
+
     const { error } = validateChecklist(req.body);
+    console.log("8")
     if (error) {
       return res.status(400).json({ message: error.details[0].message })
     }
 
+    console.log("9")
     const { title, sections_data, isPrivate } = req.body;
 
+    console.log("10")
     const newList = new Checklist({
       title,
       author: req.userData.id,
@@ -45,13 +57,18 @@ const createCheckList = async (req, res) => {
 
     const list = await newList.save();
 
+    console.log("11")
+
     if (teamId) {
       await Team.findByIdAndUpdate(teamId, { $push: { checklists: list._id } });
     }
 
+    console.log("12")
+
     return res.status(201).json(list);
 
   } catch (error) {
+    console.log("error-13", error);
     return res.status(500).json(error.message);
   }
 };
