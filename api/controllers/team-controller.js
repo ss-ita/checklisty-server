@@ -310,5 +310,34 @@ const deleteTeam = async (req, res) => {
   }
 }
 
+const getTeamUsers = async (req, res) => {
+  try{
+    const { id: teamId } = req.params;
+    const userTeam = await Team.findById(teamId, (err) => err ? res.status(403).json({ message: 'Team with that id does not exists!' }) : null);
+
+    const teamMemberCheck = userTeam.members.find((item) => {
+      return String(item) === req.userData.id;
+    });
+
+    if (!teamMemberCheck) return res.status(403).json({ message: 'You can not get team checklists because you are not a team member!' });
+
+    const teamMembers = await Team.findById(teamId).populate('members').select('members');
+
+    const filteredMembers = teamMembers.members.map(item => {
+      return {
+        id: item._id,
+        username: item.username,
+        firstName: item.firstname,
+        lastName: item.lastname,
+        image: item.image
+      }
+    });
+
+    return res.status(200).json(filteredMembers);
+  } catch (err) {
+    return res.status(500);
+  }
+}
+
 module.exports = { createTeam, getTeam,
-  inviteMember, inviteMembers, joinTeam, deleteMember, deleteTeam, getTeams, searchUsers, getTeamChecklists };
+  inviteMember, inviteMembers, joinTeam, deleteMember, deleteTeam, getTeams, searchUsers, getTeamChecklists, getTeamUsers };
