@@ -3,6 +3,7 @@ const sendEmail = require('../utils/send-email');
 const { inviteUserToTeam } = require('../utils/email-generator');
 const { Team } = require('../models/team/team-model');
 const { User } = require('../models/user-model');
+const { Checklist } = require('../models/checklists/checklist-model');
 
 const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 
@@ -39,7 +40,7 @@ const createTeam = async (req, res) => {
     const url = `${baseURL}/profile/myteam/${team._id}/?join=`;
 
     if (requested) {
-      requested.split(',').map(async id => {
+      requested.map(async id => {
         await invite(id, team, creator, url);
       });
     }
@@ -84,6 +85,7 @@ const getTeams = async (req, res) => {
     else {
       totalTeams = await Team.find({ 'members': id }).count();
     }  
+    const teamsAmount = await Team.find({ 'members': id }).count();
 
     const teams = await Team.find({ 'name': {$regex: `${search}`, $options: 'i'}})
       .where('members')
@@ -95,7 +97,7 @@ const getTeams = async (req, res) => {
    
     if (!teams) return res.status(404).json({ message: 'Team not founded' });
     
-    res.status(200).json({teams, totalTeams});
+    res.status(200).json({teams, totalTeams, teamsAmount});
   } catch (err) {
     res.json(err.message); 
   }
@@ -188,6 +190,75 @@ const joinTeam = async (req, res) => {
   }
 };
 
+const getTeamChecklists = async (req, res) => {
+  try {
+    const userTeam = await Team.findById(req.params.id, (err) => err ? res.status(403).json({ message: 'Team with that id does not exists!' }) : null);
+    const teamMemberCheck = userTeam.members.find((item) => {
+      return String(item) === req.userData.id;
+    });
+
+    if (!teamMemberCheck) return res.status(403).json({ message: 'You can not get team checklists because you are not a team member!' });
+
+    let { searchQuery = 'title', search = '', page = 1, perPage = 5, sortQuery = 'title' } = req.query;
+    let order = 1;
+
+    const totalChecklists = await Checklist.count({ [searchQuery]: { $regex: `${search}`, $options: 'i' } }).where('_id').in(userTeam.checklists);
+    const totalItems = await Checklist.count().where('_id').in(userTeam.checklists);
+
+    if (!totalItems) return res.status(400).json({ message: 'Team have not any checklists!' });
+    if (!totalChecklists) return res.status(404).json({ message: 'Lists not found!' });
+
+    if (sortQuery[0] === '-' ) {
+      order = -1;
+      sortQuery = sortQuery.slice(1);
+    }
+
+    if (perPage > totalChecklists) {
+      perPage = totalChecklists;
+      page = 1;
+    }
+
+    let totalPages = Math.ceil(totalChecklists / perPage);
+
+    if (page > totalPages) {
+      page = totalPages;
+    }
+
+    const teamChecklists = await Checklist.find(
+      { [searchQuery]: { $regex: `${search}`, $options: 'i' } }
+    )
+      .where('_id')
+      .in(userTeam.checklists)
+      .collation({ locale: 'en'})
+      .sort({ [sortQuery]: order })
+      .skip(Number(perPage) * ( page - 1 ))
+      .limit(Number(perPage))
+      .select('title creation_date sections_data slug');
+
+    const filteredChecklists = teamChecklists.map((item) => {
+
+      const tagsArray = [];
+      item.sections_data.forEach((item) => {
+        item.items_data.forEach((item) => {
+          tagsArray.push(item.tags.join(' '));
+        })});
+
+      return {
+        title: item.title,
+        date: item.creation_date,
+        id: item._id,
+        slug: item.slug
+      };
+
+    });
+
+    return res.status(200).json({ filteredChecklists, totalPages, totalItems, teamName: userTeam.name });
+    
+  } catch(err) {
+    return res.status(500);
+  }
+};
+
 const searchUsers = async (req, res) => {
   try{
     const seachUserValue = req.params.searchUser;
@@ -240,4 +311,4 @@ const deleteTeam = async (req, res) => {
 }
 
 module.exports = { createTeam, getTeam,
-  inviteMember, inviteMembers, joinTeam, deleteMember, deleteTeam, getTeams, searchUsers };
+  inviteMember, inviteMembers, joinTeam, deleteMember, deleteTeam, getTeams, searchUsers, getTeamChecklists };

@@ -4,32 +4,49 @@ const sinon = require('sinon');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
+const Joi = require('joi');
 
-const User = require('../../../api/models/user-model');
 const server = require('../../../index');
 
 chai.use(chaiHttp);
 
 const should = chai.should();
 
-describe('Authorisation Sign Up', () => {
+describe('Sign Up', () => {
+  const userData = {
+    username: 'nikname', 
+    firstname: 'Jonh',
+    lastname: 'Doe',
+    email: 'JonhDoe@email.com', 
+    password: '123456' 
+  };
+  let userFind;
+
   before(() => {
-    sinon.stub(mongoose.Model, 'findOne')
-      .onCall(0).throws({ message: 'Some error' })
-      .onCall(1).returns({})
-      .onCall(2).returns(null)
-      .onCall(3).returns({})
-      .onCall().returns(null)
+    userFind = sinon.stub(mongoose.Model, 'findOne');
+    sinon.stub(Joi, 'validate')
+      .onFirstCall().returns({ error: { details: [{ message: 'Validation error' }] } })
+      .returns({ error: null });
     sinon.stub(mongoose.Model.prototype, 'save');
-    sinon.stub(User, 'validate');
   });
 
   after(() => {
-    mongoose.Model.findOne.restore();
+    userFind.restore();
+    Joi.validate.restore();
     mongoose.Model.prototype.save.restore();
   });
 
-  it('Shold reject when username or email is absent', () => {
+  it('Shold reject, validation error', () => {
+    chai.request(server)
+      .post('/api/auth/signup')
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message');
+        res.body.message.should.eql('Validation error');
+      });
+  });
+  it('Shold reject, fill up all fields', () => {
     chai.request(server)
       .post('/api/auth/signup')
       .end((err, res) => {
@@ -39,65 +56,44 @@ describe('Authorisation Sign Up', () => {
         res.body.message.should.eql('Please, fill up all fields!');
       });
   });
-
-  it('Shold throw error not valid user data', () => {
+  it('Should reject, username is already exist', () => {
+    userFind.returns({});
     chai.request(server)
       .post('/api/auth/signup')
-      .send({ username: 'JonhDoe', email: 'notValidEmail', password: '123456' })
-      .end((err, res) => {
-        res.should.have.status(400);
-        res.body.should.be.a('object');
-        res.body.should.have.property('message');
-        res.body.message.should.eql('"email" must be a valid email');
-      });
-  });
-
-  it('Should reject with some error', () => {
-    chai.request(server)
-      .post('/api/auth/signup')
-      .send({ username: 'JonhDoe', email: 'JonhDoe@email.com', password: '123456' })
-      .end((err, res) => {
-        res.should.have.status(500);
-        res.body.should.be.a('object');
-        res.body.should.have.property('message');
-        res.body.message.should.eql('Some error');
-      });
-  });
-
-  it('Should reject creating  user with username already exsist', () => {
-    chai.request(server)
-      .post('/api/auth/signup')
-      .send({ username: 'JonhDoe', email: 'JonhDoe@email.com', password: '123456' })
+      .send(userData)
       .end((err, res) => {
         res.should.have.status(422);
         res.body.should.be.a('object');
-        res.body.should.have.property('username');
-        res.body.username.should.eql('User with this username is already exist!');
+        res.body.should.have.property('message');
+        res.body.message.should.eql('User with this username is already exist!');
       });
   });
-
-  it('Should reject creating  user with email already exsist', () => {
+  it('Should reject, email is already exist', () => {
+    userFind
+      .returns({})
+      .onSecondCall().returns();
     chai.request(server)
       .post('/api/auth/signup')
-      .send({ username: 'JonhDoe', email: 'JonhDoe@email.com', password: '123456' })
+      .send(userData)
       .end((err, res) => {
         res.should.have.status(422);
         res.body.should.be.a('object');
-        res.body.should.have.property('email');
-        res.body.email.should.eql('User with this email is already exist!');
+        res.body.should.have.property('message');
+        res.body.message.should.eql('User with this email is already exist!');
       });
   });
-
-  it('Should create user', () => {
+  it('Should sign up user', () => {
+    userFind.returns();
     chai.request(server)
       .post('/api/auth/signup')
-      .send({ username: 'JonhDoe', email: 'JonhDoe@email.com', password: '123456' })
+      .send(userData)
       .end((err, res) => {
         res.should.have.status(200);
-        res.header.should.have.property('access-token');
         res.body.should.be.a('object');
         res.body.should.have.property('message');
-        res.body.user.should.have.property('username').eql('JonhDoe');
+        res.body.should.have.property('user');
+        res.body.message.should.eql('User created!');
+        res.body.user.firstname.should.eql('Jonh');
       });
   });
 });
