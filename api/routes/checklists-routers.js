@@ -8,13 +8,13 @@ const slugController = require('../controllers/slug-controller');
 const authCheck = require('../middlewares/auth-check');
 
 router.get('/', checklistControler.getAll);
-router.get('/?page=:activePage&search=:searchValue&limit=:itemsInPage', checklistControler.getFive);
-router.get('/author=:id', checklistControler.searchByAuthor);
+router.get('/page=:activePage/search=:searchValue/limit=:itemsInPage', checklistControler.getFive);
+router.get('/author=:id', authCheck, checklistControler.searchByAuthor);
 router.get('/:id', checklistControler.getOne);
 router.post('/create', authCheck, checklistControler.createCheckList);
 router.post('/set-checkbox-data', authCheck, saveChecklistProgressController.setCheckboxesData);
-router.post('/create-users-checklists', authCheck, saveChecklistProgressController.createUserChecklistCollection);
-router.get('/get-viewed-checklists/userid=:id/page=:page/perpage=:perpage', viewedChecklistController.getViewedChecklists);
+router.post('/create-users-checklists', saveChecklistProgressController.createUserChecklistCollection);
+router.get('/get-viewed-checklists/userid=:id/page=:page/perpage=:perpage', authCheck, viewedChecklistController.getViewedChecklists);
 router.delete('/delete-history/userid=:id', authCheck, viewedChecklistController.deleteHistoryOfViewedLists);
 router.post('/create/:id/:sectionId', authCheck, checklistControler.createCheckListItem);
 router.patch('/new-slug', authCheck, slugController.findAndUpdateSlug);
