@@ -9,10 +9,11 @@ const socket = require('socket.io');
 
 const apiRouter = require('./api/routes/api-routes');
 const passportSetup = require('./passport/passport-setup');
+const chatConnect = require('./api/controllers/chat-controller');
 const { teamLogConnect } = require('./api/controllers/team-log-controller')
 
 mongoose.connect(
-  `mongodb://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_HOST}`, 
+  `mongodb://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGO_DB_HOST}`,
   { useNewUrlParser: true, useCreateIndex: true, })
   .then(() => {
     console.log('Connected to mongodb'); //eslint-disable-line
@@ -47,6 +48,7 @@ const server = app.listen(port, () => console.log('Server is running on port ' +
 const io = socket(server);
 
 io.on('connection', (socket) => {
+  chatConnect(socket, io);
   teamLogConnect(socket, io);
 });
 

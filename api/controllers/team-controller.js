@@ -40,7 +40,7 @@ const createTeam = async (req, res) => {
     const url = `${baseURL}/profile/myteam/${team._id}/?join=`;
 
     if (requested) {
-      requested.split(',').map(async id => {
+      requested.map(async id => {
         await invite(id, team, creator, url);
       });
     }
@@ -85,6 +85,7 @@ const getTeams = async (req, res) => {
     else {
       totalTeams = await Team.find({ 'members': id }).count();
     }  
+    const teamsAmount = await Team.find({ 'members': id }).count();
 
     const teams = await Team.find({ 'name': {$regex: `${search}`, $options: 'i'}})
       .where('members')
@@ -96,7 +97,7 @@ const getTeams = async (req, res) => {
    
     if (!teams) return res.status(404).json({ message: 'Team not founded' });
     
-    res.status(200).json({teams, totalTeams});
+    res.status(200).json({teams, totalTeams, teamsAmount});
   } catch (err) {
     res.json(err.message); 
   }
