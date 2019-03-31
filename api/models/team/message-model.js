@@ -2,17 +2,12 @@ const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema(
   {
-    sender: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-    teamId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Team',
-    },
-    text: String,
+    username: String,
+    avatar: String,
+    message: String,
+    createdAt: String,
+    teamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Team', },
   },
-  { timestamps: true }
 );
 
 const Message = mongoose.model('Message', messageSchema);
