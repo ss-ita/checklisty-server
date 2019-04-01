@@ -28,11 +28,13 @@ describe('create checklist', () => {
   };
 
   before(() => {
+    sinon.stub(mongoose.Model, 'findOne').returns({ isBlocked: false });
     sinon.stub(mongoose.Model.prototype, 'save').returns(checklist);
     sinon.stub(jwt, 'verify').returns({ decoded: { id: '1' } });
   });
 
   after(() => {
+    mongoose.Model.findOne.restore();
     mongoose.Model.prototype.save.restore();
     jwt.verify.restore();
   });
