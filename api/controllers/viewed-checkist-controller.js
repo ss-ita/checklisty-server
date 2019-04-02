@@ -21,9 +21,7 @@ const getViewedChecklists = async (req, res) => {
     const perPage = parseInt(req.params.perpage);
     const activePages = (parseInt(req.params.page) - 1) * perPage;
 
-    const totalPagesArray = await userChecklists.find({ userID: id });
-
-    const totalPages = totalPagesArray.length;
+    const totalPages = await userChecklists.count({ userID: id });
 
     const historyResponse = await userChecklists.find({ userID: id }).sort({ '_id': -1 })
       .skip(activePages).limit(perPage).populate('checklistData');
@@ -53,8 +51,8 @@ const deleteHistoryOfViewedLists = async (req, res) => {
   }
 }
 
-
 module.exports = {
   getViewedChecklists,
   deleteHistoryOfViewedLists,
+  countpercentProgress
 };

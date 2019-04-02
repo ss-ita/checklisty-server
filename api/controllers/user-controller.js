@@ -16,7 +16,7 @@ const statusChange = async (req, res) => {
     sendEmail({ emailGenerator: blockedOrDeletedEmail, userEmail: statusChangedUser.email, subjectOption: `You was ${userStatus}!`,
       username: statusChangedUser.username, userOrList: 'you', blockedOrDeleted: userStatus });
 
-    return res.status(200).json({ message: `User is successfuly ${statusChangedUser.isBlocked ? 'blocked' : 'unblocked'}!`});
+    return res.status(200).json({ message: `${statusChangedUser.username} is successfuly ${statusChangedUser.isBlocked ? 'blocked' : 'unblocked'}!`});
   } catch (err) {
     return res.sendStatus(500);
   }
@@ -37,7 +37,7 @@ const roleChange = async (req, res) => {
       { new: true } 
     );
 
-    return res.status(200).json(`User role was changed to ${updatedUser.role}!`);
+    return res.status(200).json(`${updatedUser.username} role was changed to ${updatedUser.role}!`);
   } catch (err) {
     return res.sendStatus(500);
   }
@@ -70,7 +70,12 @@ const getUsers = async (req, res) => {
 
     const usersPerPage = await User.find(
       { [searchQuery]: { $regex: `${search}`, $options: 'i' } }
-    ).collation({ locale: 'en'}).select('-password').sort({ [sortQuery]: order }).skip(Number(perPage) * ( page - 1 )).limit(Number(perPage));
+    )
+      .collation({ locale: 'en'})
+      .select('-password')
+      .sort({ [sortQuery]: order })
+      .skip(Number(perPage) * ( page - 1 ))
+      .limit(Number(perPage));
 
     return res.status(200).json({ usersPerPage, totalPages }); 
   } catch (err) {
@@ -92,14 +97,4 @@ const deleteUser = async (req, res) => {
   }
 }
 
-const searchUsers = async (req, res) => {
-  try{
-    const seachUserValue = req.params.searchUser;
-    const getSearchUsers = await User.find({ "username": {$regex: `${seachUserValue}`, $options: 'i'} });
-    return res.status(200).json(getSearchUsers);
-  } catch (err) {
-    return res.sendStatus(500);
-  }
-}
-
-module.exports = { roleChange, deleteUser, statusChange, getUsers, searchUsers };
+module.exports = { roleChange, deleteUser, statusChange, getUsers };

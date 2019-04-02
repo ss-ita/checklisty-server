@@ -4,5 +4,6 @@ node_modules
 .vscode
 yarn-error.log
 package-lock.json
-app.yaml
 coverage
+gae.json
+.nyc_output
