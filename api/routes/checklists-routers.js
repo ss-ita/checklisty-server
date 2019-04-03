@@ -11,15 +11,21 @@ router.get('/', checklistControler.getAll);
 router.get('/page=:activePage/search=:searchValue/limit=:itemsInPage', checklistControler.getFive);
 router.get('/author=:id', authCheck, checklistControler.searchByAuthor);
 router.get('/:id', checklistControler.getOne);
+router.get('/get-viewed-checklists/userid=:id/page=:page/perpage=:perpage', 
+  authCheck, viewedChecklistController.getViewedChecklists
+);
+router.get('/copy/:id', authCheck, checklistControler.copyList);
+
 router.post('/create', authCheck, checklistControler.createCheckList);
 router.post('/set-checkbox-data', authCheck, saveChecklistProgressController.setCheckboxesData);
 router.post('/create-users-checklists', saveChecklistProgressController.createUserChecklistCollection);
 router.post('/create-teams-checklists', saveChecklistProgressController.createTeamChecklistCollection);
-router.get('/get-viewed-checklists/userid=:id/page=:page/perpage=:perpage', authCheck, viewedChecklistController.getViewedChecklists);
-router.delete('/delete-history/userid=:id', authCheck, viewedChecklistController.deleteHistoryOfViewedLists);
 router.post('/create/:id/:sectionId', authCheck, checklistControler.createCheckListItem);
+
 router.patch('/new-slug', authCheck, slugController.findAndUpdateSlug);
 router.put('/:id', authCheck, checklistControler.update);
+
+router.delete('/delete-history/userid=:id', authCheck, viewedChecklistController.deleteHistoryOfViewedLists);
 router.delete('/:id', authCheck, checklistControler.deleteList);
 
 module.exports = router;

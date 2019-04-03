@@ -2,6 +2,7 @@ const { Checklist, validateChecklist } = require('../models/checklists/checklist
 const { User } = require('../models/user-model');
 const { Team } = require('../models/team/team-model');
 const userChecklists = require('../models//checklists/users-checklists');
+const { deleteId } = require('../utils/deleteId');
 
 const createCheckList = async (req, res) => {
   try {
@@ -267,6 +268,7 @@ const getOne = async (req, res) => {
       isPrivate: list.isPrivate,
       author: list.author,
       slug: list.slug,
+      copiedBy: list.copiedBy || [],
       creation_date: list.creation_date,
       sections_data: list.sections_data.map(section => {
         return {
@@ -359,9 +361,37 @@ const deleteList = async (req, res) => {
   }
 };
 
+const copyList = async (req, res) => {
+  try {
+    const { id: userId } = req.userData;
+    const list = await Checklist.findOneAndUpdate(
+      { slug: req.params.id },  
+      { $push: { copiedBy: userId } }, 
+    ).select('-copiedBy -_id -creation_date -createdAt -updatedAt');
+
+    if (!list) return res.sendStatus(404).json({message: "Checklist not found"});
+
+    const sections_data = deleteId(list.sections_data);
+
+    let newList = new Checklist({
+      title: list.title,
+      author: userId,
+      isPrivate: true,
+      sections_data,
+    });
+
+    newList = await newList.save();
+    
+    res.status(200).json(newList);
+  } catch (err) {
+    res.send(err.message);
+  }
+}
+
 module.exports = {
   createCheckList,
   createCheckListItem,
+  copyList,
   getAll,
   getOne,
   update,
