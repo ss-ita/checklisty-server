@@ -5,6 +5,18 @@ const createNestedChecklist = async (req, res) => {
     const { title, author_id, isPrivate, checklistData } = req.body;
     const checklist_IDs = await checklistData.map(list => list.id || list._id)
 
+    if (!title || !checklistData) {
+      return res.status(422).json({
+        message: 'Please, fill up title and add at least one checklist'
+      });
+    }
+
+    if (!author_id) {
+      return res.status(404).json({
+        message: 'Author not found'
+      });
+    }
+
     const newList = new nestedChecklist({
       title,
       author: author_id,
