@@ -6,10 +6,6 @@ module.exports = async (req, res, next) => {
       
     if (!operatedUser) return res.status(403).json({ message: 'Access-denied!' });
 
-    const { operatingUserRole } = req.userData;
-
-    if (operatedUser.role === 'admin' || operatingUserRole === 'moderator') return res.status(403).json({ message: 'Access denied!'});
-
     req.userData.operatedUserBlockStatus = operatedUser.isBlocked;
 
     return next();
