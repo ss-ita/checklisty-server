@@ -1,4 +1,5 @@
 const { Message } = require('../models/team/message-model');
+const checkMessage = require('../utils/chatMsgValidation');
 
 const chatConnect = (socket, io) => {
   let teamRoom;
@@ -12,6 +13,12 @@ const chatConnect = (socket, io) => {
   });
 
   socket.on('message', data => {
+    const validMsg = checkMessage(data.message);
+
+    if (!validMsg) {
+      return;
+    }
+
     io.to(teamRoom).emit('message', data);
     saveMessage(data);
   });
