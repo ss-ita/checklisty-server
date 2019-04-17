@@ -261,8 +261,10 @@ const getTeamChecklists = async (req, res) => {
 
 const searchUsers = async (req, res) => {
   try{
-    const seachUserValue = req.params.searchUser;
-    const getSearchUsers = await User.find({ "username": {$regex: `${seachUserValue}`, $options: 'i'} });
+    const searchUserValue = req.params.searchUser;
+    const getSearchUsers = await User.find({$or: [{firstname: { $regex: `${searchUserValue}`, $options: 'i'}}, 
+      {lastname: { $regex: `${searchUserValue}`, $options: 'i'}},
+      {username: {$regex: `${searchUserValue}`, $options: 'i'}}]});
     return res.status(200).json(getSearchUsers);
   } catch (err) {
     return res.sendStatus(500);
