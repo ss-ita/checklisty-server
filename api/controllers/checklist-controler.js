@@ -1,4 +1,5 @@
 const { Checklist, validateChecklist } = require('../models/checklists/checklist-model');
+const { nestedChecklist } = require('../models/checklists/nested-checklist-model');
 const { User } = require('../models/user-model');
 const { Team } = require('../models/team/team-model');
 const userChecklists = require('../models//checklists/users-checklists');
@@ -103,29 +104,14 @@ const getAll = async (req, res) => {
       .limit(Number(limit))
       .populate('author', 'username');
 
-    const result = checkLists.map(doc => {
-      return {
-        id: doc.id,
-        title: doc.title,
-        author: doc.author,
-        slug: doc.slug,
-        creation_date: doc.creation_date,
-        sections_data: doc.sections_data.map(section => {
-          return {
-            section_title: section.section_title,
-            items_data: section.items_data.map(item => {
-              return {
-                item_title: item.item_title,
-                description: item.description,
-                details: item.details,
-                tags: item.tags,
-                priority: item.priority,
-              }
-            })
-          }
-        })
-      }
-    });
+    const nestedCheckLists = await nestedChecklist.find({  "title": { $regex: `${search}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]})
+      .sort({ "creation_date": -1 })
+      .skip(Number(limit) * ( page - 1))
+      .limit(Number(limit))
+      .populate('author', 'username')
+      .populate('checklists_data');
+
+    const result = checkLists.concat(nestedCheckLists);
 
     res.status(200).json({ result, totalItems });
 
@@ -192,7 +178,7 @@ const searchFilter = async (req, res) => {
       "title": { $regex: `${search}`, $options: 'i' },
       $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
     }).sort({ "creation_date": -1 }).populate('author', 'username');
-
+    
     const result = checkLists.map(doc => {
       return {
         id: doc.id,

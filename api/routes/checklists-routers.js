@@ -11,10 +11,10 @@ const nestedChecklistController = require('../controllers/nested-checklist-contr
 router.get('/', checklistControler.getAll);
 router.get('/page=:activePage/search=:searchValue/limit=:itemsInPage', checklistControler.getFive);
 router.get('/author=:id', authCheck, checklistControler.searchByAuthor);
+router.get('/search=:searchValue', checklistControler.searchFilter);
 router.get('/:id', checklistControler.getOne);
 router.post('/create', authCheck, checklistControler.createCheckList);
-router.get('/search=:searchValue', checklistControler.searchFilter);
-router.get('/get-nested-checklist=:id', nestedChecklistController.getNestedChecklist);
+router.get('/get-nested-checklist/:id', nestedChecklistController.getNestedChecklist);
 router.post('/create-nested-checklist', nestedChecklistController.createNestedChecklist);
 router.post('/set-checkbox-data', authCheck, saveChecklistProgressController.setCheckboxesData);
 router.post('/create-users-checklists', saveChecklistProgressController.createUserChecklistCollection);
