@@ -6,13 +6,16 @@ const messageController = require('../controllers/message-controller');
 const router = new express.Router();
 
 router.get('/searchUsers/searchUsers=:searchUser', teamController.searchUsers);
+router.get('/getInvites/:id', teamController.getInvites);
+router.get('/declineInvite', teamController.declineInvite);
+router.get('/acceptInvite', teamController.acceptInvite);
 router.get('/team/:id', teamController.getTeam);
 router.get('/myteams', teamController.getTeams);
 router.get('/join/:token', teamController.joinTeam);
 router.get('/:id/checklists', teamController.getTeamChecklists);
 router.get('/:id/members', teamController.getTeamUsers);
 router.post('/', teamController.createTeam);
-router.post('/invite', teamController.inviteMember);
+router.post('/invite', teamController.inviteMembers);
 router.delete('/:id', teamController.deleteTeam);
 router.delete('/deletemember/:id', teamController.deleteMember);
 
