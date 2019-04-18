@@ -1,15 +1,21 @@
 const { Message } = require('../models/team/message-model');
-const checkMessage = require('../utils/chatMsgValidation');
+const checkMessage = require('../utils/chat-msg-validation');
 
 const chatConnect = (socket, io) => {
   let teamRoom;
   let connectedUser;
+  let roomSockets;
+  let connectedUserNumber;
 
   socket.on('joinRoom', ({ teamId, username }) => {
     teamRoom = teamId;
     connectedUser = username;
 
     socket.join(teamRoom);
+    roomSockets = io.sockets.adapter.rooms[teamRoom];
+    connectedUserNumber = roomSockets.length;
+
+    io.to(teamRoom).emit('connectedUserNumber', connectedUserNumber);
   });
 
   socket.on('message', data => {
@@ -33,6 +39,9 @@ const chatConnect = (socket, io) => {
 
   socket.on('disconnect', () => {
     socket.username = connectedUser;
+    connectedUserNumber = roomSockets ? roomSockets.length : 0;
+
+    io.to(teamRoom).emit('connectedUserNumber', connectedUserNumber);
     socket.broadcast.to(teamRoom).emit('userDisconnection', socket.username);
   });
 };
