@@ -47,12 +47,9 @@ const chatConnect = (socket, io) => {
 
   socket.on('disconnect', () => {
     connectedUsersNames.splice(connectedUsersNames.indexOf(connectedUser), 1);
-    
-    io.to(teamRoom).emit('onlineUsers', connectedUsersNames);
-
-    socket.username = connectedUser;
     connectedUserNumber = roomSockets ? roomSockets.length : 0;
 
+    io.to(teamRoom).emit('onlineUsers', connectedUsersNames);
     io.to(teamRoom).emit('connectedUserNumber', connectedUserNumber);
     socket.broadcast.to(teamRoom).emit('userDisconnection', socket.username);
   });
