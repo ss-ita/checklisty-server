@@ -1,8 +1,8 @@
 const { Checklist, validateChecklist } = require('../models/checklists/checklist-model');
+const { nestedChecklist } = require('../models/checklists/nested-checklist-model');
 const { User } = require('../models/user-model');
 const { Team } = require('../models/team/team-model');
 const userChecklists = require('../models//checklists/users-checklists');
-const { deleteId } = require('../utils/deleteId');
 
 const createCheckList = async (req, res) => {
   try {
@@ -104,29 +104,14 @@ const getAll = async (req, res) => {
       .limit(Number(limit))
       .populate('author', 'username');
 
-    const result = checkLists.map(doc => {
-      return {
-        id: doc.id,
-        title: doc.title,
-        author: doc.author,
-        slug: doc.slug,
-        creation_date: doc.creation_date,
-        sections_data: doc.sections_data.map(section => {
-          return {
-            section_title: section.section_title,
-            items_data: section.items_data.map(item => {
-              return {
-                item_title: item.item_title,
-                description: item.description,
-                details: item.details,
-                tags: item.tags,
-                priority: item.priority,
-              }
-            })
-          }
-        })
-      }
-    });
+    const nestedCheckLists = await nestedChecklist.find({  "title": { $regex: `${search}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]})
+      .sort({ "creation_date": -1 })
+      .skip(Number(limit) * ( page - 1))
+      .limit(Number(limit))
+      .populate('author', 'username')
+      .populate('checklists_data');
+
+    const result = checkLists.concat(nestedCheckLists);
 
     res.status(200).json({ result, totalItems });
 
@@ -187,23 +172,13 @@ const getFive = async (req, res) => {
 
 const searchFilter = async (req, res) => {
   try {
-    const search = req.params.filter;
-    let howMuch = (parseInt(req.params.activePage) - 1) * 5;
-
-    const totalItems = Math.ceil(await Checklist.find({
-      "title": { $regex: `${search}`, $options: 'i' },
-      $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
-    }).count() / 5);
-
-    if (howMuch > totalItems) {
-      howMuch = totalItems;
-    }
+    const search = req.params.searchValue;
 
     const checkLists = await Checklist.find({
       "title": { $regex: `${search}`, $options: 'i' },
       $or: [{ isPrivate: false }, { isPrivate: { $exists: false } }]
-    }).sort({ "creation_date": -1 }).skip(howMuch).limit(5).populate('author', 'username');
-
+    }).sort({ "creation_date": -1 }).populate('author', 'username');
+    
     const result = checkLists.map(doc => {
       return {
         id: doc.id,
@@ -227,7 +202,7 @@ const searchFilter = async (req, res) => {
         })
       }
     });
-    res.status(200).json({ result, totalItems });
+    res.status(200).json(result);
   } catch (error) {
     res.json(error);
   }
@@ -236,7 +211,9 @@ const searchFilter = async (req, res) => {
 const searchByAuthor = async (req, res) => {
   try {
     const author = req.params.id;
-    const lists = await Checklist.find({ author }).sort({ "creation_date": -1 }).select('');
+    const user = await User.findOne({ _id: author }).select('copiedLists');
+    const lists = await Checklist.find({ $or: [{ author }, { _id: user.copiedLists }]}).sort({ "creation_date": -1 }).select('');
+    
     let result =  await Promise.all(lists.map(async doc => {
       const progress = await doc.getProgress(author);
       const res =  {
@@ -319,6 +296,21 @@ const update = async (req, res) => {
       { $set: { sections_data, title, isPrivate } },
       { new: true }
     );
+    const userChecklistsData = await userChecklists.findOne({
+      userID: list.author,
+      checklistID: list._id
+    })
+    const resetArray = function (array) {
+      // let amount = 0;
+      for (let i = 0; i < array.length; i++) {
+        // amount += array[i].length;
+        for (let j = 0; j < array[i].length; j++) {
+          array[i][j] = false;
+        }
+      }
+    }
+    userChecklistsData.checkboxes_data = resetArray(userChecklistsData.checkboxes_data);
+    await userChecklistsData.save();
 
     if (!list) return res.sendStatus(404).json({ message: 'Checklist not found' });
 
@@ -343,6 +335,14 @@ const deleteList = async (req, res) => {
       });
     }
 
+    const isCopied = await User.findOneAndUpdate(
+      { _id: req.userData.id, copiedLists: req.params.id }, 
+      { $pull: { copiedLists: req.params.id } },
+      { new: true }
+    );
+
+    if (isCopied) return res.status(200).json({ message: 'Copied list deleted' });
+
     if (String(checklist.author) !== req.userData.id && (operatingUser.role !== 'admin' && operatingUser.role !== 'moderator') && userInTeamCheck === null ? true : userInTeamCheck === undefined ? true : false) {
       return res.status(403).json({ message: 'Access denied!' });
     }
@@ -363,26 +363,20 @@ const deleteList = async (req, res) => {
 
 const copyList = async (req, res) => {
   try {
-    const { id: userId } = req.userData;
-    const list = await Checklist.findOneAndUpdate(
-      { slug: req.params.id },  
-      { $push: { copiedBy: userId } }, 
-    ).select('-copiedBy -_id -creation_date -createdAt -updatedAt');
+    const { id } = req.userData;
+    const { id: listId } = req.params;
 
-    if (!list) return res.sendStatus(404).json({message: "Checklist not found"});
+    const list = await Checklist.findOne({ _id: listId }).select('title');
 
-    const sections_data = deleteId(list.sections_data);
+    if (!list) return res.status(404).json({ message: 'List nof found' });
 
-    let newList = new Checklist({
-      title: list.title,
-      author: userId,
-      isPrivate: true,
-      sections_data,
-    });
+    const user = await User.findOneAndUpdate(
+      { _id: id }, 
+      { $push: { copiedLists: listId } },
+      { new: true }
+    );
 
-    newList = await newList.save();
-    
-    res.status(200).json(newList);
+    res.status(200).json({ message: 'List copied', list, user })
   } catch (err) {
     res.send(err.message);
   }
