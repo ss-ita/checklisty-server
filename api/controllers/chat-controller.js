@@ -3,12 +3,20 @@ const { Message } = require('../models/team/message-model');
 const chatConnect = (socket, io) => {
   let teamRoom;
   let connectedUser;
+  let connectedUsersNames;
 
   socket.on('joinRoom', ({ teamId, username }) => {
     teamRoom = teamId;
     connectedUser = username;
-
+    socket.username = connectedUser;
     socket.join(teamRoom);
+
+    const clients = Object.keys(io.sockets.adapter.rooms[teamRoom].sockets);
+    connectedUsersNames = clients.map((id) => {
+      return io.sockets.connected[id].username;
+    });
+
+    io.to(teamRoom).emit('onlineUsers', connectedUsersNames);
   });
 
   socket.on('message', data => {
@@ -25,7 +33,10 @@ const chatConnect = (socket, io) => {
   });
 
   socket.on('disconnect', () => {
-    socket.username = connectedUser;
+    connectedUsersNames.splice(connectedUsersNames.indexOf(connectedUser), 1);
+    
+    io.to(teamRoom).emit('onlineUsers', connectedUsersNames);
+
     socket.broadcast.to(teamRoom).emit('userDisconnection', socket.username);
   });
 };
