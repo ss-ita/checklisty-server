@@ -14,16 +14,15 @@ const chatConnect = (socket, io) => {
     socket.username = connectedUser;
     socket.join(teamRoom);
 
-    const clients = Object.keys(io.sockets.adapter.rooms[teamRoom].sockets);
+    roomSockets = io.sockets.adapter.rooms[teamRoom];
+    connectedUserNumber = roomSockets.length;
+
+    const clients = Object.keys(roomSockets.sockets);
     connectedUsersNames = clients.map((id) => {
       return io.sockets.connected[id].username;
     });
 
     io.to(teamRoom).emit('onlineUsers', connectedUsersNames);
-    
-    roomSockets = io.sockets.adapter.rooms[teamRoom];
-    connectedUserNumber = roomSockets.length;
-
     io.to(teamRoom).emit('connectedUserNumber', connectedUserNumber);
   });
 
