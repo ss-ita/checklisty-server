@@ -1,9 +1,12 @@
 const { Message } = require('../models/team/message-model');
+const checkMessage = require('../utils/chat-msg-validation');
 
 const chatConnect = (socket, io) => {
   let teamRoom;
   let connectedUser;
   let connectedUsersNames;
+  let roomSockets;
+  let connectedUserNumber;
 
   socket.on('joinRoom', ({ teamId, username }) => {
     teamRoom = teamId;
@@ -17,9 +20,20 @@ const chatConnect = (socket, io) => {
     });
 
     io.to(teamRoom).emit('onlineUsers', connectedUsersNames);
+    
+    roomSockets = io.sockets.adapter.rooms[teamRoom];
+    connectedUserNumber = roomSockets.length;
+
+    io.to(teamRoom).emit('connectedUserNumber', connectedUserNumber);
   });
 
   socket.on('message', data => {
+    const validMsg = checkMessage(data.message);
+
+    if (!validMsg) {
+      return;
+    }
+
     io.to(teamRoom).emit('message', data);
     saveMessage(data);
   });
@@ -37,6 +51,10 @@ const chatConnect = (socket, io) => {
     
     io.to(teamRoom).emit('onlineUsers', connectedUsersNames);
 
+    socket.username = connectedUser;
+    connectedUserNumber = roomSockets ? roomSockets.length : 0;
+
+    io.to(teamRoom).emit('connectedUserNumber', connectedUserNumber);
     socket.broadcast.to(teamRoom).emit('userDisconnection', socket.username);
   });
 };
