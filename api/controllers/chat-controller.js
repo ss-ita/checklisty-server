@@ -4,17 +4,25 @@ const checkMessage = require('../utils/chat-msg-validation');
 const chatConnect = (socket, io) => {
   let teamRoom;
   let connectedUser;
+  let connectedUsersNames;
   let roomSockets;
   let connectedUserNumber;
 
   socket.on('joinRoom', ({ teamId, username }) => {
     teamRoom = teamId;
     connectedUser = username;
-
+    socket.username = connectedUser;
     socket.join(teamRoom);
+
     roomSockets = io.sockets.adapter.rooms[teamRoom];
     connectedUserNumber = roomSockets.length;
 
+    const clients = Object.keys(roomSockets.sockets);
+    connectedUsersNames = clients.map((id) => {
+      return io.sockets.connected[id].username;
+    });
+
+    io.to(teamRoom).emit('onlineUsers', connectedUsersNames);
     io.to(teamRoom).emit('connectedUserNumber', connectedUserNumber);
   });
 
@@ -38,9 +46,10 @@ const chatConnect = (socket, io) => {
   });
 
   socket.on('disconnect', () => {
-    socket.username = connectedUser;
+    connectedUsersNames.splice(connectedUsersNames.indexOf(connectedUser), 1);
     connectedUserNumber = roomSockets ? roomSockets.length : 0;
 
+    io.to(teamRoom).emit('onlineUsers', connectedUsersNames);
     io.to(teamRoom).emit('connectedUserNumber', connectedUserNumber);
     socket.broadcast.to(teamRoom).emit('userDisconnection', socket.username);
   });
