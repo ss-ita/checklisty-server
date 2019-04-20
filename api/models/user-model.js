@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
     location: String,
     image: String,
     role: { type: String, enum: ['admin', 'moderator', 'user'], default: 'user'},
+    copiedLists: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Checklist' }],
     isBlocked: { type: Boolean, default: false },
   },
   { timestamps: true }

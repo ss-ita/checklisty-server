@@ -7,6 +7,7 @@ const viewedChecklistController = require('../controllers/viewed-checkist-contro
 const slugController = require('../controllers/slug-controller');
 const authCheck = require('../middlewares/auth-check');
 const checklistChartController = require('../controllers/checklist-chart-controller');
+const nestedChecklistController = require('../controllers/nested-checklist-controller');
 
 router.get('/', checklistControler.getAll);
 router.get('/page=:activePage/search=:searchValue/limit=:itemsInPage', checklistControler.getFive);
@@ -15,6 +16,7 @@ router.get('/week', checklistChartController.getChecklistsForWeek);
 router.get('/month', checklistChartController.getChecklistsForMonth);
 router.get('/year', checklistChartController.getChecklistsForYear);
 router.get('/author=:id', authCheck, checklistControler.searchByAuthor);
+router.get('/search=:searchValue', checklistControler.searchFilter);
 router.get('/:id', checklistControler.getOne);
 router.get('/get-viewed-checklists/userid=:id/page=:page/perpage=:perpage', 
   authCheck, viewedChecklistController.getViewedChecklists
@@ -22,6 +24,8 @@ router.get('/get-viewed-checklists/userid=:id/page=:page/perpage=:perpage',
 router.get('/copy/:id', authCheck, checklistControler.copyList);
 
 router.post('/create', authCheck, checklistControler.createCheckList);
+router.get('/get-nested-checklist/:id', nestedChecklistController.getNestedChecklist);
+router.post('/create-nested-checklist', nestedChecklistController.createNestedChecklist);
 router.post('/set-checkbox-data', authCheck, saveChecklistProgressController.setCheckboxesData);
 router.post('/create-users-checklists', saveChecklistProgressController.createUserChecklistCollection);
 router.post('/create-teams-checklists', saveChecklistProgressController.createTeamChecklistCollection);

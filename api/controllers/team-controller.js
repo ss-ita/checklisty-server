@@ -21,7 +21,6 @@ const invite = async (id, team, inviting, url) => {
     inviting: inviting.username,
     url: url + inviteToken,
     invited: invited.username}); 
-    
   team.requested.push(id);
 }
 
@@ -30,7 +29,6 @@ const createTeam = async (req, res) => {
   try {
     const { id: creatorId } = req.userData;
     const { name, requested } = req.body;
-    
     const creator = await User.findById(creatorId).select('username');
     if (!creator) return res.status(422).json({ message: 'Creator is absent' });
     if (!name) return res.status(422).json({ message: 'Name is required' });
@@ -105,28 +103,30 @@ const getTeams = async (req, res) => {
 
 const inviteMembers = async (req, res) => {
   try {
-    const { teamId, url } = req.body;
+    const { teamId, requested } = req.body;
+    let team = await Team.findById(teamId).select('members requested creator');
+    const uniqueRequested = [];
+    for(let i = 0; i < requested.length; i++){
+      let counter = 0;
+      for(let j = 0; j < team.members.length; j++){
+        if(requested[i] === String(team.members[j])){
+          counter ++;
+        }
+      }
+      if(counter === 0){
+        uniqueRequested.push(requested[i]);
+      }
+    }
 
-    let team = await Team.findOne({ _id: teamId }).select('name creator requested')
-    if (!team) return res.status(404).json({ message: 'Team not found' });
-
-    const inviting = await User.findById(team.creator).select('username');
-
-    team.requested.map(async id => {
-      const invited = await User.findById(id).select('username email');
-
-      const inviteToken = team.generateTeamToken(id);
-      
-      sendEmail({ emailGenerator: inviteUserToTeam, 
-        userEmail: invited.email, 
-        userName: invited.username,
-        subjectOption: `You invited to team ${team.name}`,
-        team,
-        inviting: inviting.username,
-        url: url + inviteToken,
-        invited: invited.username});      
-    });
-
+    const url = `${baseURL}/profile/myteam/${team._id}/?join=`;
+    if (uniqueRequested) {
+      uniqueRequested.map(async id => {
+        await invite(id, team, team.creator, url);
+        team.requested.push(id);
+        await team.save();
+      });
+    }
+    await team.save();
     res.status(200).json({ message: 'Users invited' });
   } catch(err) {
     res.json(err.message);
@@ -262,12 +262,14 @@ const getTeamChecklists = async (req, res) => {
 const searchUsers = async (req, res) => {
   try{
     const searchUserValue = req.params.searchUser;
-    const getSearchUsers = await User.find({$or: [{firstname: { $regex: `${searchUserValue}`, $options: 'i'}}, 
-      {lastname: { $regex: `${searchUserValue}`, $options: 'i'}},
-      {username: {$regex: `${searchUserValue}`, $options: 'i'}}]});
+    const getSearchUsers = await User.find(
+      {$or: [{firstname: { $regex: `${searchUserValue}`, $options: 'i'}}, 
+        {lastname: { $regex: `${searchUserValue}`, $options: 'i'}},
+        {username: {$regex: `${searchUserValue}`, $options: 'i'}}]}
+    )
     return res.status(200).json(getSearchUsers);
   } catch (err) {
-    return res.sendStatus(500);
+    return res.sendStatus(500).json({message: `${err}`});
   }
 }
 
@@ -340,6 +342,37 @@ const getTeamUsers = async (req, res) => {
     return res.status(500);
   }
 }
+const getInvites = async (req, res) => {
+  try{
+    const userId = req.params.id;
+    const result = await Team.find({"requested": {$in : [`${userId}`]}}).populate({path: 'creator', select: 'username'});
+    return res.status(200).json(result);
+  } catch(err){
+    return res.status(500);
+  }
+}
+const declineInvite = async (req, res) => {
+  try{
+    let {teamId, userId} = req.query;
+    await Team.findById(teamId).update({ $pull: {"requested": {$in : [`${userId}`]}}});
+    return res.status(200);
+  } catch (err){
+    return res.status(500);
+  }
+}
+const acceptInvite = async (req, res) => {
+  try{
+    const { teamId, userId } = req.query;
+    await Team.findOneAndUpdate(
+      { _id: teamId },  
+      { $push: { members: userId }, $pull: { requested: userId } }, 
+      { new: true }
+    );
+    return res.status(200);
+  } catch (err){
+    return res.status(500);
+  }
+}
 
 module.exports = { createTeam, getTeam,
-  inviteMember, inviteMembers, joinTeam, deleteMember, deleteTeam, getTeams, searchUsers, getTeamChecklists, getTeamUsers };
+  inviteMember, inviteMembers, joinTeam, deleteMember, deleteTeam, getTeams, searchUsers, getTeamChecklists, getTeamUsers, getInvites, declineInvite, acceptInvite };

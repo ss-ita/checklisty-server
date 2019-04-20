@@ -26,14 +26,24 @@ const roleChange = async (req, res) => {
   try {
     const { operatedUserBlockStatus } = req.userData;
 
-    if (operatedUserBlockStatus) return res.status(403).json( { message: 'You can not give moderator rights to blocked user!'});
+    if (operatedUserBlockStatus) return res.status(403).json( { message: 'You can not change role for blocked user!'});
 
     const { id: operatedUserId } =  req.params;
-    const { userRole = 'user' } = req.query;
+    const { userRole } = req.query;
 
+    const countOfAdmins = await User.find({ 'role': {$regex: 'admin', $options: 'i'}});
+    
+    if(countOfAdmins.length === 1) {
+      const lastAdmin = countOfAdmins[0];
+      
+      if (operatedUserId === lastAdmin._id.toString() && userRole !== 'admin') {
+        return res.status(403).json({ message: 'Access denied! Should to be at least one admin!'});
+      }
+    }
+    
     const updatedUser = await User.findByIdAndUpdate(
       operatedUserId,
-      { $set: { role: userRole === 'user' ? userRole : 'moderator' } },
+      { $set: { role: userRole } },
       { new: true } 
     );
 
