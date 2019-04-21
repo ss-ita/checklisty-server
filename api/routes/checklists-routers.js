@@ -6,10 +6,15 @@ const saveChecklistProgressController = require('../controllers/save-checklist-p
 const viewedChecklistController = require('../controllers/viewed-checkist-controller');
 const slugController = require('../controllers/slug-controller');
 const authCheck = require('../middlewares/auth-check');
+const checklistChartController = require('../controllers/checklist-chart-controller');
 const nestedChecklistController = require('../controllers/nested-checklist-controller');
 
 router.get('/', checklistControler.getAll);
 router.get('/page=:activePage/search=:searchValue/limit=:itemsInPage', checklistControler.getFive);
+router.get('/today', checklistChartController.getMadeTodayChecklists);
+router.get('/week', checklistChartController.getChecklistsForWeek);
+router.get('/month', checklistChartController.getChecklistsForMonth);
+router.get('/year', checklistChartController.getChecklistsForYear);
 router.get('/author=:id', authCheck, checklistControler.searchByAuthor);
 router.get('/search=:searchValue', checklistControler.searchFilter);
 router.get('/:id', checklistControler.getOne);
