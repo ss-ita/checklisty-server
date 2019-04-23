@@ -13,12 +13,12 @@ script:
 notifications:
   email: false
 
-deploy:
-  provider: gae
-  project: summer-brand-232313
-  skip_cleanup: true
-  keyfile: gae.json
-  on: development
+# deploy:
+#   provider: gae
+#   project: summer-brand-232313
+#   skip_cleanup: true
+#   keyfile: gae.json
+#   on: development
 
 before_install:
 - openssl aes-256-cbc -K $encrypted_ff5f24ddbc76_key -iv $encrypted_ff5f24ddbc76_iv
