@@ -97,7 +97,7 @@ const getAll = async (req, res) => {
     if (limit > totalItems){
       page = 1;
     }
-
+    
     const checkLists = await Checklist.find({  "title": { $regex: `${search}`, $options: 'i' }, $or: [{ isPrivate: false  }, {isPrivate: { $exists: false }}]})
       .sort({ "creation_date": -1 })
       .skip(Number(limit) * ( page - 1))
