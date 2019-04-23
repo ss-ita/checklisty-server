@@ -365,7 +365,7 @@ const acceptInvite = async (req, res) => {
     const { teamId, userId } = req.query;
     await Team.findOneAndUpdate(
       { _id: teamId },  
-      { $push: { members: userId }, $pull: { requested: userId } }, 
+      { $push: { members: userId }, $pull: { requested: userId } },
       { new: true, runValidators: true },
     );
     return res.status(200);
