@@ -20,7 +20,7 @@ notifications:
 #   keyfile: gae.json
 #   on: development
 
-# before_install:
-# - openssl aes-256-cbc -K $encrypted_ff5f24ddbc76_key -iv $encrypted_ff5f24ddbc76_iv
-#   -in sensetive.tar.enc -out sensetive.tar -d
-# - tar xvf sensetive.tar
+before_install:
+- openssl aes-256-cbc -K $encrypted_ff5f24ddbc76_key -iv $encrypted_ff5f24ddbc76_iv
+  -in sensetive.tar.enc -out sensetive.tar -d
+- tar xvf sensetive.tar
