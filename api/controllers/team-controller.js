@@ -181,7 +181,7 @@ const joinTeam = async (req, res) => {
     team = await Team.findOneAndUpdate(
       { _id: teamId },  
       { $push: { members: userId }, $pull: { requested: userId } }, 
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     res.status(200).send(`${user.username} joinded a team ${team.name}`);
@@ -366,7 +366,7 @@ const acceptInvite = async (req, res) => {
     await Team.findOneAndUpdate(
       { _id: teamId },  
       { $push: { members: userId }, $pull: { requested: userId } }, 
-      { new: true }
+      { new: true, runValidators: true },
     );
     return res.status(200);
   } catch (err){
