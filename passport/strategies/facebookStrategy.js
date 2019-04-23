@@ -11,7 +11,7 @@ module.exports = {
         clientID: process.env.FACEBOOK_APP_ID,
         clientSecret: process.env.FACEBOOK_APP_SECRET,
         callbackURL:
-          'https://summer-brand-232313.appspot.com/api/auth/facebook/redirect',
+          'https://check-listy.herokuapp.com/api/auth/facebook/redirect',
         profileFields: ['id', 'displayName', 'picture.type(large)', 'email']
       },
       async (accessToken, refreshToken, profile, done) => {
