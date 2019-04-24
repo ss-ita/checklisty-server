@@ -11,7 +11,7 @@ module.exports = {
         clientID: process.env.GITHUB_CLIENT_ID,
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
         callbackURL:
-          'https://check-listy.herokuapp.com/api/auth/github/redirect',
+          'https://summer-brand-232313.appspot.com/api/auth/github/redirect',
         scope: ['user:email']
       },
       async (accessToken, refreshToken, profile, done) => {
